@@ -639,6 +639,59 @@
   .icon-mini.flag.on{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
   .card-head .btn-copy{margin-left:0}
 
+  /* ---------- small order label (1..last) + scene index ---------- */
+  .ord{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:22px;height:20px;padding:0 6px;
+    border-radius:6px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--ink-dim);
+    font-family:var(--mono);font-size:11px;font-weight:700;
+    white-space:nowrap;
+  }
+  .card.flash{animation:flashcard 1.3s ease}
+  @keyframes flashcard{
+    0%,100%{box-shadow:0 0 0 0 rgba(245,154,60,0)}
+    12%{box-shadow:0 0 0 3px var(--accent-soft)}
+  }
+  .scene-index{
+    display:none;flex-direction:column;gap:12px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:13px 14px;
+    margin-top:14px;
+  }
+  .scene-index.show{display:flex}
+  .si-group{display:flex;flex-direction:column;gap:8px}
+  .si-head{
+    display:flex;align-items:center;gap:8px;
+    font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+  .si-head .dotc{width:9px;height:9px;border-radius:2px;flex:none}
+  .si-head .dotc.n{background:var(--new)}
+  .si-head .dotc.p{background:var(--same)}
+  .si-head .si-cnt{margin-left:auto;font-family:var(--mono);color:var(--ink-dim);font-size:11px}
+  .si-nums{display:flex;flex-wrap:wrap;gap:6px}
+  .si-num{
+    appearance:none;cursor:pointer;
+    min-width:30px;height:30px;padding:0 8px;
+    border-radius:8px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--ink);
+    font-family:var(--mono);font-size:12.5px;font-weight:700;
+    transition:transform .12s,border-color .16s,color .16s,background .16s,opacity .16s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .si-num:hover{border-color:var(--ink-faint)}
+  .si-num:active{transform:scale(.9)}
+  .si-num.flagged{border-color:var(--accent);color:var(--accent)}
+  .si-num.done{opacity:.4;text-decoration:line-through}
+  .si-empty{font-size:11.5px;color:var(--ink-faint);font-family:var(--mono)}
+
   /* ---------- currency toggle (#37) ---------- */
   .cur-toggle{display:inline-flex;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden}
   .cur-toggle button{
@@ -747,6 +800,7 @@
     .inputs,
     .projects,
     .toolbar,
+    .scene-index,
     .compare,
     .fab,
     .card-tools,
@@ -849,6 +903,18 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         <span id="copyNextLabel">Copy next</span>
       </button>
+    </div>
+  </div>
+
+  <!-- scene index — small 1..last labels split into two groups (tap to jump) -->
+  <div class="scene-index" id="sceneIndex">
+    <div class="si-group">
+      <div class="si-head"><span class="dotc p"></span>New + Same <span class="si-cnt" id="siContCnt"></span></div>
+      <div class="si-nums" id="siCont"></div>
+    </div>
+    <div class="si-group">
+      <div class="si-head"><span class="dotc n"></span>New <span class="si-cnt" id="siAloneCnt"></span></div>
+      <div class="si-nums" id="siAlone"></div>
     </div>
   </div>
 
@@ -1333,6 +1399,7 @@
     emptyEl.classList.remove('show');
     dashEl.classList.remove('show'); dashBody.innerHTML = '';
     toolbarEl.classList.remove('show');
+    document.getElementById('sceneIndex').classList.remove('show');
     document.title = BASE_TITLE;
 
     if(!(resultInput.value || '').trim() && !cuts.length){
@@ -1361,6 +1428,7 @@
       card.className = 'card' + (cut.copied ? ' done' : '') + (cut.flagged ? ' flagged' : '') +
                        (cut.dup ? ' dup' : '') + (allCollapsed ? ' collapsed' : '');
       card.style.animationDelay = Math.min(idx * 30, 360) + 'ms';
+      card.setAttribute('data-ord', idx + 1); /* small 1..last order label */
 
       var badgeClass = d.isSame ? 'same' : 'new';
       var badgeText  = cut.token || 'NEW SCENE';
@@ -1381,6 +1449,7 @@
 
       card.innerHTML =
         '<div class="card-head">' +
+          '<span class="ord" title="order (1 to last)">' + (idx + 1) + '</span>' +
           '<span class="cut-no">🦕 ' + esc(cut.num) + '</span>' +
           (cut.origNum ? '<span class="was">was ' + esc(cut.origNum) + '</span>' : '') +
           '<span class="badge ' + badgeClass + '">' + esc(badgeText) + '</span>' +
@@ -1451,7 +1520,56 @@
     statusEl.classList.add('show');
 
     updateToolbar(s);
+    renderSceneIndex();
     renderDashboard(cuts, s.newCount, s.sameCount, state.parts);
+  }
+
+  /* ---------- scene index: small 1..last numbers split into two groups ----------
+     A cut is a "continuation" (New + Same) when it is a SAME SCENE, or a
+     NEW SCENE immediately followed by a SAME SCENE (the start of a pair).
+     Everything else is a lone "New" (standalone). Numbers are the cut's
+     position in the full list (1 to last), independent of its 🦕 number,
+     and tapping one jumps to that card. */
+  function isContinuation(cut, i){
+    if(cut.token === 'SAME SCENE') return true;
+    var next = state.cuts[i + 1];
+    return !!(next && next.token === 'SAME SCENE');
+  }
+  function renderSceneIndex(){
+    var contEl  = document.getElementById('siCont');
+    var aloneEl = document.getElementById('siAlone');
+    contEl.innerHTML = ''; aloneEl.innerHTML = '';
+    var cN = 0, aN = 0;
+    state.cuts.forEach(function(cut, i){
+      var ord = i + 1;
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'si-num' + (cut.copied ? ' done' : '') + (cut.flagged ? ' flagged' : '');
+      btn.textContent = ord;
+      btn.setAttribute('data-ord', ord);
+      btn.title = '🦕 ' + cut.num + ' — tap to jump';
+      if(isContinuation(cut, i)){ contEl.appendChild(btn); cN++; }
+      else { aloneEl.appendChild(btn); aN++; }
+    });
+    if(!cN) contEl.innerHTML  = '<span class="si-empty">none</span>';
+    if(!aN) aloneEl.innerHTML = '<span class="si-empty">none</span>';
+    document.getElementById('siContCnt').textContent  = cN;
+    document.getElementById('siAloneCnt').textContent = aN;
+    document.getElementById('sceneIndex').classList.add('show');
+  }
+
+  /* jump to a card by its order number, then flash it */
+  function scrollToOrd(ord){
+    var cut = state.cuts[ord - 1];
+    if(!cut) return;
+    if(!passesFilter(cut)){ currentFilter = 'all'; syncFilterChips(); renderCards(); }
+    var el = cardsEl.querySelector('.card[data-ord="' + ord + '"]');
+    if(!el) return;
+    el.scrollIntoView({ behavior:'smooth', block:'center' });
+    el.classList.remove('flash');
+    void el.offsetWidth; /* restart the animation */
+    el.classList.add('flash');
+    setTimeout(function(){ el.classList.remove('flash'); }, 1400);
   }
 
   /* ---------- #2 #4 #12 toolbar (progress, filters, copy-next) ---------- */
@@ -1500,6 +1618,7 @@
       /* refresh progress bar + counts without a full re-render flicker */
       var s = statsOf(state.cuts);
       updateToolbar(s);
+      renderSceneIndex(); /* strike through this number in the index too */
       /* #3 auto-scroll to the next un-copied card */
       if(opts.scrollNext !== false) scrollToNextUncopied(cut);
     }
@@ -1724,6 +1843,12 @@
   document.getElementById('collapseBtn').addEventListener('click', function(){
     allCollapsed = !allCollapsed;
     renderCards();
+  });
+
+  /* ---------- scene index: tap a number to jump to its card ---------- */
+  document.getElementById('sceneIndex').addEventListener('click', function(e){
+    var b = e.target.closest('.si-num'); if(!b) return;
+    scrollToOrd(parseInt(b.getAttribute('data-ord'), 10));
   });
 
   /* ---------- #2 copy next ---------- */
