@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Scene Cut Splitter</title>
+<meta name="description" content="Split Step 1 output into copy-ready scene cut prompts. Offline.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f1115">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cut Splitter">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <style>
   :root{
     --bg:#0f1115;
@@ -461,6 +470,264 @@
     .card-body{padding:12px}
   }
 
+  /* ---------- projects bar (#29) ---------- */
+  .projects{
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+  .projects select{
+    flex:1;min-width:120px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    color:var(--ink);
+    font-family:var(--sans);font-size:13px;font-weight:600;
+    padding:9px 11px;
+    outline:none;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .projects select:focus{border-color:var(--accent)}
+  .mini-btn{
+    appearance:none;cursor:pointer;
+    display:inline-flex;align-items:center;gap:5px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    color:var(--ink-dim);
+    font-family:var(--sans);font-size:12.5px;font-weight:600;
+    padding:9px 12px;border-radius:var(--radius-sm);
+    transition:color .18s,border-color .18s,transform .12s;
+    -webkit-tap-highlight-color:transparent;
+    white-space:nowrap;
+  }
+  .mini-btn:hover{color:var(--ink);border-color:var(--ink-faint)}
+  .mini-btn:active{transform:scale(.95)}
+  .mini-btn svg{width:14px;height:14px}
+  .mini-btn.danger:hover{color:#ff7d7d;border-color:#ff7d7d}
+
+  /* ---------- paste buttons (#48) ---------- */
+  .field label .paste-btn{
+    margin-left:auto;
+    appearance:none;cursor:pointer;
+    display:inline-flex;align-items:center;gap:4px;
+    background:var(--accent-soft);
+    border:1px solid transparent;
+    color:var(--accent);
+    font-family:var(--sans);font-size:10px;font-weight:700;
+    letter-spacing:.4px;text-transform:uppercase;
+    padding:4px 9px;border-radius:999px;
+    -webkit-tap-highlight-color:transparent;
+    transition:transform .12s;
+  }
+  .field label .paste-btn:active{transform:scale(.93)}
+  .field label .paste-btn svg{width:11px;height:11px}
+  .field label .hint + .paste-btn{margin-left:8px}
+
+  /* ---------- style presets (#36) ---------- */
+  .presets{
+    display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+    margin-top:8px;
+  }
+  .presets select{
+    flex:1;min-width:110px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:8px;
+    color:var(--ink);
+    font-family:var(--sans);font-size:12px;font-weight:600;
+    padding:7px 9px;outline:none;
+  }
+  .presets select:focus{border-color:var(--accent)}
+  .presets .mini-btn{padding:7px 10px;font-size:11.5px}
+
+  /* ---------- cards toolbar (#2 #4 #12 #14) ---------- */
+  .toolbar{
+    display:none;
+    flex-direction:column;gap:11px;
+    margin-top:14px;
+  }
+  .toolbar.show{display:flex}
+  .progress-wrap{display:flex;flex-direction:column;gap:6px}
+  .progress-top{
+    display:flex;align-items:center;justify-content:space-between;
+    font-size:11.5px;font-weight:600;color:var(--ink-dim);
+  }
+  .progress-top b{color:var(--new);font-family:var(--mono)}
+  .progress-bar{
+    height:8px;border-radius:999px;
+    background:var(--panel-2);overflow:hidden;
+    border:1px solid var(--line);
+  }
+  .progress-bar i{
+    display:block;height:100%;width:0;
+    background:var(--new);border-radius:999px;
+    transition:width .3s cubic-bezier(.2,.7,.3,1);
+  }
+  .tool-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .chip{
+    appearance:none;cursor:pointer;
+    background:var(--panel);
+    border:1px solid var(--line);
+    color:var(--ink-dim);
+    font-family:var(--sans);font-size:12px;font-weight:600;
+    padding:7px 12px;border-radius:999px;
+    transition:color .16s,border-color .16s,background .16s,transform .12s;
+    -webkit-tap-highlight-color:transparent;
+    white-space:nowrap;
+  }
+  .chip:active{transform:scale(.95)}
+  .chip:hover{color:var(--ink);border-color:var(--ink-faint)}
+  .chip.on{
+    background:var(--accent-soft);
+    border-color:var(--accent);
+    color:var(--accent);
+  }
+  .chip .cnt{opacity:.7;font-family:var(--mono);font-size:11px}
+  .tool-row .spacer{flex:1}
+  .btn-copynext{
+    appearance:none;cursor:pointer;
+    display:inline-flex;align-items:center;gap:7px;
+    background:var(--new);
+    border:none;
+    color:#08120c;
+    font-family:var(--sans);font-size:13px;font-weight:700;
+    padding:9px 15px;border-radius:999px;
+    box-shadow:0 3px 14px rgba(76,195,138,.3);
+    transition:transform .12s,background .18s,opacity .18s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .btn-copynext:active{transform:scale(.96)}
+  .btn-copynext:disabled{
+    opacity:.5;cursor:default;box-shadow:none;
+    background:var(--panel-2);color:var(--ink-faint);
+  }
+  .btn-copynext svg{width:14px;height:14px}
+
+  /* ---------- session compare (#44) ---------- */
+  .compare{
+    display:none;align-items:center;gap:10px;flex-wrap:wrap;
+    margin-top:12px;
+    background:var(--same-soft);
+    border-radius:var(--radius-sm);
+    padding:9px 13px;
+    font-size:12px;font-weight:600;color:var(--ink-dim);
+  }
+  .compare.show{display:flex}
+  .compare .up{color:var(--new)}
+  .compare .down{color:#ff9d7d}
+  .compare .flat{color:var(--ink-faint)}
+
+  /* ---------- card additions ---------- */
+  .card.flagged{border-color:var(--accent)}
+  .card.flagged .card-head{background:var(--accent-soft)}
+  .card.collapsed .card-body,
+  .card.collapsed .vo-line{display:none}
+  .card.collapsed{margin-bottom:8px}
+  .card.dup .cut-no::before{content:"\29C9 ";color:var(--same);font-weight:400}
+  .card-head .card-tools{display:flex;align-items:center;gap:6px;margin-left:auto}
+  .icon-mini{
+    appearance:none;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;
+    width:30px;height:30px;border-radius:8px;
+    background:transparent;border:1px solid var(--line);
+    color:var(--ink-faint);
+    transition:color .16s,border-color .16s,background .16s,transform .12s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .icon-mini:hover{color:var(--ink);border-color:var(--ink-faint)}
+  .icon-mini:active{transform:scale(.92)}
+  .icon-mini svg{width:14px;height:14px}
+  .icon-mini.flag.on{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+  .card-head .btn-copy{margin-left:0}
+
+  /* ---------- currency toggle (#37) ---------- */
+  .cur-toggle{display:inline-flex;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .cur-toggle button{
+    appearance:none;cursor:pointer;
+    background:var(--panel);border:none;
+    color:var(--ink-dim);
+    font-family:var(--mono);font-size:11.5px;font-weight:700;
+    padding:5px 10px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .cur-toggle button.on{background:var(--accent);color:#141005}
+
+  /* ---------- floating buttons (#50) ---------- */
+  .fab{
+    position:fixed;
+    right:16px;
+    bottom:calc(18px + env(safe-area-inset-bottom));
+    width:44px;height:44px;border-radius:50%;
+    display:none;align-items:center;justify-content:center;
+    background:var(--panel);
+    border:1px solid var(--line);
+    color:var(--ink-dim);
+    cursor:pointer;
+    box-shadow:0 4px 16px rgba(0,0,0,.3);
+    z-index:40;
+    -webkit-tap-highlight-color:transparent;
+    transition:transform .12s,color .18s,border-color .18s;
+  }
+  .fab.show{display:inline-flex}
+  .fab:active{transform:scale(.92)}
+  .fab svg{width:20px;height:20px}
+
+  /* ---------- history + changelog modal (#35 #60) ---------- */
+  .modal-back{
+    display:none;position:fixed;inset:0;
+    background:rgba(0,0,0,.55);
+    z-index:60;
+    align-items:flex-end;justify-content:center;
+    padding:0;
+  }
+  .modal-back.show{display:flex}
+  .modal{
+    width:100%;max-width:520px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius) var(--radius) 0 0;
+    max-height:80vh;overflow-y:auto;
+    padding:18px 16px calc(20px + env(safe-area-inset-bottom));
+    animation:sheet .28s cubic-bezier(.2,.7,.3,1) both;
+  }
+  @keyframes sheet{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+  @media (min-width:560px){
+    .modal-back{align-items:center}
+    .modal{border-radius:var(--radius);max-height:82vh}
+  }
+  .modal-head{
+    display:flex;align-items:center;gap:10px;margin-bottom:14px;
+  }
+  .modal-head h3{font-size:15px;font-weight:700;color:var(--ink)}
+  .modal-head .mini-btn{margin-left:auto}
+  .hist-item{
+    display:flex;align-items:center;gap:10px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:11px 12px;margin-bottom:9px;
+  }
+  .hist-item .hi-main{flex:1;min-width:0}
+  .hist-item .hi-name{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hist-item .hi-sub{font-size:11px;color:var(--ink-faint);font-family:var(--mono);margin-top:2px}
+  .hist-empty{color:var(--ink-faint);font-size:13px;text-align:center;padding:24px 0}
+  .change-log{font-size:12.5px;color:var(--ink-dim);line-height:1.7}
+  .change-log b{color:var(--ink)}
+  .change-log ul{margin:4px 0 12px 18px}
+  .change-log li{margin-bottom:3px}
+
+  /* ---------- version footer (#60) ---------- */
+  .footer{
+    margin-top:26px;text-align:center;
+    font-size:11px;color:var(--ink-faint);
+  }
+  .footer button{
+    appearance:none;background:none;border:none;cursor:pointer;
+    color:var(--ink-faint);font:inherit;
+    text-decoration:underline;text-underline-offset:2px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .footer button:hover{color:var(--ink-dim)}
+
   /* ---------- print / PDF shot list ---------- */
   @media print{
     :root,
@@ -478,11 +745,20 @@
     body{padding:0;font-size:12px;background:#fff}
     .head-btns,
     .inputs,
+    .projects,
+    .toolbar,
+    .compare,
+    .fab,
+    .card-tools,
     .btn-copy,
     .connector,
     .empty,
     .dash-actions,
+    .footer,
     .theme-toggle{display:none!important}
+    .card.collapsed .card-body,
+    .card.collapsed .vo-line{display:block!important}
+    .card.flagged{border-color:#b9bec8}
     .brand .dot{box-shadow:none}
     .status{margin-top:6px}
     .card{
@@ -514,14 +790,33 @@
     </div>
   </header>
 
+  <!-- #29 projects bar -->
+  <div class="projects" id="projects">
+    <select id="projectSel" aria-label="Current project"></select>
+    <button class="mini-btn" id="newProjBtn" type="button" title="New project">+ New</button>
+    <button class="mini-btn" id="renameProjBtn" type="button" title="Rename project">Rename</button>
+    <button class="mini-btn danger" id="delProjBtn" type="button" title="Delete project">Delete</button>
+    <button class="mini-btn" id="histBtn" type="button" title="Recent sessions">Recent</button>
+  </div>
+
   <section class="inputs">
     <div class="field">
-      <label><span class="num">1</span> Full result -- Step 1 output <span class="hint">multi-part paste OK &mdash; auto renumbered</span></label>
+      <label><span class="num">1</span> Full result <span class="hint">multi-part OK</span>
+        <button class="paste-btn" id="pasteResult" type="button" title="Paste from clipboard">Paste</button>
+      </label>
       <textarea id="resultInput" placeholder="Paste the full part output here (all 🦕 cut blocks)… You can paste several parts back-to-back." spellcheck="false"></textarea>
     </div>
     <div class="field">
-      <label><span class="num">2</span> Text to image prompt</label>
+      <label><span class="num">2</span> Text to image prompt
+        <button class="paste-btn" id="pastePrompt" type="button" title="Paste from clipboard">Paste</button>
+      </label>
       <textarea id="promptInput" placeholder="Paste the text-to-image style prompt here…" spellcheck="false"></textarea>
+      <!-- #36 style presets -->
+      <div class="presets">
+        <select id="presetSel" aria-label="Style presets"><option value="">Style presets…</option></select>
+        <button class="mini-btn" id="savePresetBtn" type="button">Save</button>
+        <button class="mini-btn danger" id="delPresetBtn" type="button">Del</button>
+      </div>
     </div>
     <div class="actions">
       <button class="btn btn-generate" id="generateBtn">Generate</button>
@@ -531,6 +826,32 @@
 
   <div class="status" id="status"></div>
 
+  <!-- #44 session compare -->
+  <div class="compare" id="compare"></div>
+
+  <!-- #2 #4 #12 #14 cards toolbar -->
+  <div class="toolbar" id="toolbar">
+    <div class="progress-wrap">
+      <div class="progress-top"><span>Copied progress</span><span><b id="progLabel">0 of 0</b></span></div>
+      <div class="progress-bar"><i id="progFill"></i></div>
+    </div>
+    <div class="tool-row" id="filterRow">
+      <button class="chip on" data-filter="all" type="button">All <span class="cnt" id="cntAll"></span></button>
+      <button class="chip" data-filter="new" type="button">NEW <span class="cnt" id="cntNew"></span></button>
+      <button class="chip" data-filter="same" type="button">SAME <span class="cnt" id="cntSame"></span></button>
+      <button class="chip" data-filter="uncopied" type="button">Not copied <span class="cnt" id="cntUn"></span></button>
+      <button class="chip" data-filter="flagged" type="button">⚠️ Flagged <span class="cnt" id="cntFlag"></span></button>
+    </div>
+    <div class="tool-row">
+      <button class="chip" id="collapseBtn" type="button">Collapse all</button>
+      <div class="spacer"></div>
+      <button class="btn-copynext" id="copyNextBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        <span id="copyNextLabel">Copy next</span>
+      </button>
+    </div>
+  </div>
+
   <details class="dash" id="dash" open>
     <summary>Session dashboard <span class="chev">&#9662;</span></summary>
     <div class="dash-body" id="dashBody"></div>
@@ -539,6 +860,25 @@
   <div id="cards"></div>
   <div class="empty" id="empty">No cuts found. Check that the pasted result contains 🦕 cut blocks.</div>
 
+  <!-- #60 version footer -->
+  <div class="footer">Scene Cut Splitter <button id="verBtn" type="button">v<span id="verNum"></span></button> &middot; offline</div>
+
+</div>
+
+<!-- #50 scroll-to-top -->
+<button class="fab" id="topFab" type="button" aria-label="Scroll to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+
+<!-- #35 recent sessions + #60 changelog modal -->
+<div class="modal-back" id="modalBack">
+  <div class="modal" id="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">Recent sessions</h3>
+      <button class="mini-btn" id="modalClose" type="button">Close</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
 </div>
 
 <script>
@@ -552,18 +892,160 @@
   var emptyEl     = document.getElementById('empty');
   var dashEl      = document.getElementById('dash');
   var dashBody    = document.getElementById('dashBody');
+  var toolbarEl   = document.getElementById('toolbar');
+  var compareEl   = document.getElementById('compare');
 
   var BASE_TITLE   = 'Scene Cut Splitter';
-  var DEFAULT_RATE = 0.039; /* Nano Banana 2 (Google Flow) — editable, $/image */
+  var VERSION      = '2.0';
   var DEFAULT_IMGS = 4;     /* images generated per cut, pick 1 — editable */
+
+  /* #37 currencies — rate is $/image (or ₹/image), editable & remembered per currency */
+  var CURRENCIES = {
+    USD: { sym:'$', defRate:0.039 },
+    INR: { sym:'₹', defRate:3.25 }
+  };
+
+  /* #60 changelog shown in the version modal */
+  var CHANGELOG = [
+    ['2.0', [
+      'Copy next button + auto-scroll to the next uncopied cut',
+      'Copied-progress bar; copied & flagged marks now survive refresh',
+      'Filters: NEW / SAME / not copied / flagged',
+      'Collapse all cards, duplicate a cut, flag a cut',
+      'Multiple saved projects + recent-sessions history (last 5)',
+      'Style-prompt presets, USD/INR cost currency, session compare',
+      'Installable phone app (offline), paste buttons, scroll-to-top',
+      'Two-tap confirm on Clear, vibration on copy'
+    ]],
+    ['1.0', ['Parse cuts, dashboard, cost estimate, print, themes, undo']]
+  ];
+
+  /* current display filter (#12) */
+  var currentFilter = 'all';
+  var allCollapsed  = false;
 
   var COPY_ICON  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
   var CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
   var PRINT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>';
+  var FLAG_ICON  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>';
+  var DUP_ICON   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+  var CHEV_ICON  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
 
   /* ---------- tiny localStorage helpers (never throw) ---------- */
   function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
   function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+  function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+  function jGet(k, fb){ try{ var v = JSON.parse(lsGet(k)); return v == null ? fb : v; }catch(e){ return fb; } }
+  function jSet(k, v){ lsSet(k, JSON.stringify(v)); }
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+  /* ---------- runtime state ---------- */
+  /* state.cuts holds parsed cut objects that can also carry runtime flags
+     (copied / flagged) and duplicates. It is the source of truth for
+     rendering and is snapshotted into the current project so copied,
+     flagged and duplicated cards survive a refresh (#5 #8 #23). */
+  var state = { cuts: [], parts: 1, collapsed: false };
+
+  /* =========================================================
+     #29 PROJECTS  — many saved workspaces
+     scs_projects : { id: {name, result, prompt, cutsState, parts, lastStats}, ... }
+     scs_current  : active project id
+     ========================================================= */
+  var projectSel   = document.getElementById('projectSel');
+  function getProjects(){ return jGet('scs_projects', {}); }
+  function saveProjects(p){ jSet('scs_projects', p); }
+  function currentProjectId(){ return lsGet('scs_current'); }
+
+  function ensureProject(){
+    var projs = getProjects();
+    var id = currentProjectId();
+    if(!id || !projs[id]){
+      /* migrate an old single session if present */
+      var legacyR = lsGet('scs_result'), legacyP = lsGet('scs_prompt');
+      id = uid();
+      projs[id] = { name:'Project 1', result: legacyR || '', prompt: legacyP || '', cutsState:null, parts:1, lastStats:null };
+      saveProjects(projs);
+      lsSet('scs_current', id);
+      lsDel('scs_result'); lsDel('scs_prompt');
+    }
+    return id;
+  }
+
+  function activeProject(){ return getProjects()[currentProjectId()]; }
+
+  function persistProject(){
+    var projs = getProjects();
+    var id = currentProjectId();
+    if(!projs[id]) return;
+    projs[id].result = resultInput.value;
+    projs[id].prompt = promptInput.value;
+    projs[id].cutsState = state.cuts.length ? state.cuts.map(function(c){
+      return { num:c.num, origNum:c.origNum, vo:c.vo, token:c.token, scene:c.scene,
+               framing:c.framing, copied:!!c.copied, flagged:!!c.flagged, dup:!!c.dup };
+    }) : null;
+    projs[id].parts = state.parts;
+    saveProjects(projs);
+  }
+
+  function renderProjectList(){
+    var projs = getProjects();
+    var id = currentProjectId();
+    projectSel.innerHTML = '';
+    Object.keys(projs).forEach(function(pid){
+      var o = document.createElement('option');
+      o.value = pid; o.textContent = projs[pid].name;
+      if(pid === id) o.selected = true;
+      projectSel.appendChild(o);
+    });
+  }
+
+  function switchProject(id){
+    persistProject();
+    lsSet('scs_current', id);
+    loadProjectIntoView();
+  }
+
+  function loadProjectIntoView(){
+    var p = activeProject();
+    resultInput.value = p.result || '';
+    promptInput.value = p.prompt || '';
+    exitClearConfirm();
+    if(p.cutsState && p.cutsState.length){
+      state.cuts = p.cutsState.map(function(c){ return c; });
+      state.parts = p.parts || 1;
+      renderCards();
+    } else if((p.result || '').trim()){
+      generate();
+    } else {
+      state.cuts = []; renderCards();
+    }
+    renderProjectList();
+  }
+
+  /* =========================================================
+     #35 HISTORY — last 5 generated sessions
+     ========================================================= */
+  function pushHistory(snapshot){
+    var h = jGet('scs_history', []);
+    h.unshift(snapshot);
+    if(h.length > 5) h = h.slice(0,5);
+    jSet('scs_history', h);
+  }
+
+  /* =========================================================
+     #36 STYLE PRESETS
+     ========================================================= */
+  var presetSel = document.getElementById('presetSel');
+  function getPresets(){ return jGet('scs_presets', []); }
+  function renderPresetList(){
+    var ps = getPresets();
+    presetSel.innerHTML = '<option value="">Style presets…</option>';
+    ps.forEach(function(p, i){
+      var o = document.createElement('option');
+      o.value = String(i); o.textContent = p.name;
+      presetSel.appendChild(o);
+    });
+  }
 
   /* ---------- parsing ---------- */
   function parseCuts(text){
@@ -655,8 +1137,11 @@
     var avgWords = total ? Math.round(descWordsTotal / total) : 0;
     var pctNew = total ? (newCount / total * 100) : 0;
 
-    var savedRate = parseFloat(lsGet('scs_rate'));
-    var rate = (isFinite(savedRate) && savedRate >= 0) ? savedRate : DEFAULT_RATE;
+    var cur = lsGet('scs_currency'); if(cur !== 'INR') cur = 'USD';
+    function rateFor(c){
+      var saved = parseFloat(lsGet('scs_rate_' + c));
+      return (isFinite(saved) && saved >= 0) ? saved : CURRENCIES[c].defRate;
+    }
     var savedImgs = parseInt(lsGet('scs_imgs'), 10);
     var imgs = (isFinite(savedImgs) && savedImgs >= 1) ? savedImgs : DEFAULT_IMGS;
 
@@ -682,10 +1167,14 @@
       '<div class="tile"><b>' + avgWords + '</b><span>Avg words/cut</span></div>' +
     '</div>';
 
-    /* #7 cost estimate — Nano Banana 2 via Google Flow, editable rate + images/cut */
+    /* #7 + #37 cost estimate — editable rate + images/cut, USD or INR */
     html += '<div class="cost-row">🍌 Nano Banana 2 (Google Flow) &mdash; ' +
-      '<label for="rateInput">$/image</label> ' +
-      '<input id="rateInput" type="number" min="0" step="0.001" inputmode="decimal" value="' + rate + '"> ' +
+      '<span class="cur-toggle" id="curToggle">' +
+        '<button type="button" data-cur="USD"' + (cur === 'USD' ? ' class="on"' : '') + '>$ USD</button>' +
+        '<button type="button" data-cur="INR"' + (cur === 'INR' ? ' class="on"' : '') + '>₹ INR</button>' +
+      '</span> ' +
+      '<label for="rateInput" id="rateLbl">' + CURRENCIES[cur].sym + '/image</label> ' +
+      '<input id="rateInput" type="number" min="0" step="0.001" inputmode="decimal" value="' + rateFor(cur) + '"> ' +
       '&times; ' +
       '<label for="imgsInput">imgs/cut</label> ' +
       '<input id="imgsInput" type="number" min="1" step="1" inputmode="numeric" value="' + imgs + '"> ' +
@@ -715,42 +1204,138 @@
     var imgsInput = document.getElementById('imgsInput');
     var costOut   = document.getElementById('costOut');
     var imgsOut   = document.getElementById('imgsOut');
+    var rateLbl   = document.getElementById('rateLbl');
     function updateCost(){
       var r = parseFloat(rateInput.value);
       if(!isFinite(r) || r < 0) r = 0;
       var n = parseInt(imgsInput.value, 10);
       if(!isFinite(n) || n < 1) n = 1;
       var totalImgs = n * total;
-      costOut.textContent = '$' + (r * totalImgs).toFixed(2);
+      costOut.textContent = CURRENCIES[cur].sym + (r * totalImgs).toFixed(2);
       imgsOut.textContent = ' (' + totalImgs + ' imgs)';
-      lsSet('scs_rate', String(r));
+      lsSet('scs_rate_' + cur, String(r));
       lsSet('scs_imgs', String(n));
     }
     rateInput.addEventListener('input', updateCost);
     imgsInput.addEventListener('input', updateCost);
     updateCost();
 
+    /* #37 currency switch */
+    var curToggle = document.getElementById('curToggle');
+    curToggle.addEventListener('click', function(e){
+      var b = e.target.closest('button[data-cur]');
+      if(!b) return;
+      cur = b.getAttribute('data-cur');
+      lsSet('scs_currency', cur);
+      Array.prototype.forEach.call(curToggle.querySelectorAll('button'), function(x){
+        x.classList.toggle('on', x.getAttribute('data-cur') === cur);
+      });
+      rateLbl.textContent = CURRENCIES[cur].sym + '/image';
+      rateInput.value = rateFor(cur);
+      updateCost();
+    });
+
     document.getElementById('printBtn').addEventListener('click', function(){
       window.print();
     });
   }
 
-  /* ---------- render ---------- */
-  function render(){
+  /* ---------- derived fields for one cut ---------- */
+  function deriveCut(cut, stylePrompt){
+    var isSame = cut.token === 'SAME SCENE';
+    var fullDesc = cut.scene + (cut.framing ? ' Camera framing: ' + cut.framing + '.' : '');
+    var fullCopy = (!isSame && stylePrompt ? stylePrompt + '\n\n' : '') + fullDesc;
+    return { isSame: isSame, fullDesc: fullDesc, fullCopy: fullCopy };
+  }
+
+  /* ---------- #44 compute compact stats for compare ---------- */
+  function statsOf(cuts){
+    var newCount = 0, sameCount = 0, scenes = 0;
+    cuts.forEach(function(c){
+      if(c.token === 'SAME SCENE') sameCount++; else newCount++;
+      if(c.token !== 'SAME SCENE') scenes++;
+    });
+    if(scenes === 0 && cuts.length) scenes = 1;
+    return { cuts: cuts.length, newCount: newCount, sameCount: sameCount, scenes: scenes };
+  }
+
+  /* ---------- generate: parse fresh from the text boxes ---------- */
+  function generate(){
     var raw = resultInput.value || '';
-    var stylePrompt = (promptInput.value || '').trim();
+    if(!raw.trim()){
+      state.cuts = [];
+      renderCards();
+      return;
+    }
     var cuts = parseCuts(raw);
     var parts = mergeParts(cuts);
 
+    /* #44 compare against the previous generation of THIS project */
+    var proj = activeProject();
+    var prev = proj ? proj.lastStats : null;
+    var now  = statsOf(cuts);
+    showCompare(prev, now);
+
+    /* fresh generation resets copied/flagged/dup */
+    state.cuts = cuts.map(function(c){
+      return { num:c.num, origNum:c.origNum, vo:c.vo, token:c.token, scene:c.scene,
+               framing:c.framing, copied:false, flagged:false, dup:false };
+    });
+    state.parts = parts;
+
+    /* #35 history + save lastStats for next compare */
+    if(cuts.length){
+      var proj2 = getProjects()[currentProjectId()];
+      pushHistory({ name: (proj2 ? proj2.name : 'Project') + ' · ' + new Date().toLocaleString(),
+                    result: raw, prompt: promptInput.value,
+                    cuts: now.cuts, scenes: now.scenes, time: Date.now() });
+      var projs = getProjects();
+      if(projs[currentProjectId()]) projs[currentProjectId()].lastStats = now;
+      saveProjects(projs);
+    }
+
+    renderCards();
+    persistProject();
+  }
+
+  function showCompare(prev, now){
+    if(!prev || !now.cuts){ compareEl.classList.remove('show'); return; }
+    function delta(label, a, b){
+      var d = b - a;
+      if(d === 0) return '<span class="flat">' + label + ' ' + b + ' (no change)</span>';
+      var cls = d > 0 ? 'up' : 'down';
+      return '<span class="' + cls + '">' + label + ' ' + (d > 0 ? '+' : '') + d + '</span>';
+    }
+    compareEl.innerHTML = '<span>vs last generate:</span>' +
+      delta('cuts', prev.cuts, now.cuts) +
+      delta('scenes', prev.scenes, now.scenes);
+    compareEl.classList.add('show');
+  }
+
+  /* ---------- #12 filter test ---------- */
+  function passesFilter(cut){
+    switch(currentFilter){
+      case 'new':      return cut.token !== 'SAME SCENE';
+      case 'same':     return cut.token === 'SAME SCENE';
+      case 'uncopied': return !cut.copied;
+      case 'flagged':  return !!cut.flagged;
+      default:         return true;
+    }
+  }
+
+  /* ---------- render the cards from state.cuts ---------- */
+  function renderCards(){
+    var stylePrompt = (promptInput.value || '').trim();
+    var cuts = state.cuts;
+
     cardsEl.innerHTML = '';
-    statusEl.innerHTML = '';
-    statusEl.classList.remove('show');
+    statusEl.innerHTML = ''; statusEl.classList.remove('show');
     emptyEl.classList.remove('show');
-    dashEl.classList.remove('show');
-    dashBody.innerHTML = '';
+    dashEl.classList.remove('show'); dashBody.innerHTML = '';
+    toolbarEl.classList.remove('show');
     document.title = BASE_TITLE;
 
-    if(!raw.trim()){
+    if(!(resultInput.value || '').trim() && !cuts.length){
       emptyEl.textContent = 'Paste the Step 1 result in box 1, then tap Generate.';
       emptyEl.classList.add('show');
       return;
@@ -761,41 +1346,36 @@
       return;
     }
 
-    /* #14 cut count in tab title */
+    var s = statsOf(cuts);
     document.title = cuts.length + ' cuts — ' + BASE_TITLE;
 
-    var newCount = 0, sameCount = 0;
+    var visible = 0;
     var frag = document.createDocumentFragment();
 
     cuts.forEach(function(cut, idx){
-      var isSame = cut.token === 'SAME SCENE';
-      if(isSame) sameCount++; else newCount++;
-
-      // Full description = scene description + framing line, counted together.
-      var fullDesc = cut.scene + (cut.framing ? ' Camera framing: ' + cut.framing + '.' : '');
-
-      // SAME SCENE cards never get the style prompt prepended.
-      var fullCopy = (!isSame && stylePrompt ? stylePrompt + '\n\n' : '') + fullDesc;
+      if(!passesFilter(cut)) return;
+      visible++;
+      var d = deriveCut(cut, stylePrompt);
 
       var card = document.createElement('article');
-      card.className = 'card';
-      card.style.animationDelay = Math.min(idx * 35, 400) + 'ms';
+      card.className = 'card' + (cut.copied ? ' done' : '') + (cut.flagged ? ' flagged' : '') +
+                       (cut.dup ? ' dup' : '') + (allCollapsed ? ' collapsed' : '');
+      card.style.animationDelay = Math.min(idx * 30, 360) + 'ms';
 
-      var badgeClass = isSame ? 'same' : 'new';
+      var badgeClass = d.isSame ? 'same' : 'new';
       var badgeText  = cut.token || 'NEW SCENE';
 
       var descHtml = '';
-      if(!isSame && stylePrompt){
+      if(!d.isSame && stylePrompt){
         descHtml += '<span class="style-part">' + esc(stylePrompt) + '</span><hr class="divider">';
       }
-      descHtml += '<span class="scene-part">' + esc(fullDesc) + '</span>';
+      descHtml += '<span class="scene-part">' + esc(d.fullDesc) + '</span>';
 
-      /* #3 per-cut data counts */
-      var dWords = words(fullDesc);
+      var dWords = words(d.fullDesc);
       var metaHtml = '<div class="cut-meta">' +
         '<span>' + dWords + ' words</span>' +
-        '<span>' + fullDesc.length + ' chars</span>' +
-        '<span>prompt ' + fullCopy.length + ' chars</span>' +
+        '<span>' + d.fullDesc.length + ' chars</span>' +
+        '<span>prompt ' + d.fullCopy.length + ' chars</span>' +
         (cut.vo ? '<span>line ' + words(cut.vo) + ' words</span>' : '') +
       '</div>';
 
@@ -804,7 +1384,12 @@
           '<span class="cut-no">🦕 ' + esc(cut.num) + '</span>' +
           (cut.origNum ? '<span class="was">was ' + esc(cut.origNum) + '</span>' : '') +
           '<span class="badge ' + badgeClass + '">' + esc(badgeText) + '</span>' +
-          '<button class="btn btn-copy">' + COPY_ICON + '<span>Copy</span></button>' +
+          '<div class="card-tools">' +
+            '<button class="icon-mini flag' + (cut.flagged ? ' on' : '') + '" title="Flag to revisit" aria-label="Flag">' + FLAG_ICON + '</button>' +
+            '<button class="icon-mini dupBtn" title="Duplicate this cut" aria-label="Duplicate">' + DUP_ICON + '</button>' +
+            '<button class="icon-mini colBtn" title="Collapse/expand" aria-label="Collapse">' + CHEV_ICON + '</button>' +
+            '<button class="btn btn-copy' + (cut.copied ? ' copied' : '') + '">' + (cut.copied ? CHECK_ICON + '<span>Copied</span>' : COPY_ICON + '<span>Copy</span>') + '</button>' +
+          '</div>' +
         '</div>' +
         (cut.vo ? '<div class="vo-line"><b>Line:</b> ' + esc(cut.vo) + '</div>' : '') +
         '<div class="card-body">' +
@@ -813,53 +1398,140 @@
           (cut.framing ? '<div class="framing">📷 <span>' + esc(cut.framing) + '</span></div>' : '') +
         '</div>';
 
+      /* copy (#5 mark + persist, #53 haptic) */
       var copyBtn = card.querySelector('.btn-copy');
       copyBtn.addEventListener('click', function(){
-        copyText(fullCopy, copyBtn, card);
+        copyText(d.fullCopy, copyBtn, card, cut);
+      });
+      /* #8 flag */
+      card.querySelector('.flag').addEventListener('click', function(){
+        cut.flagged = !cut.flagged;
+        persistProject();
+        renderCards();
+      });
+      /* #23 duplicate */
+      card.querySelector('.dupBtn').addEventListener('click', function(){
+        var copy = { num:cut.num, origNum:cut.origNum, vo:cut.vo, token:cut.token,
+                     scene:cut.scene, framing:cut.framing, copied:false, flagged:false, dup:true };
+        state.cuts.splice(idx + 1, 0, copy);
+        persistProject();
+        renderCards();
+      });
+      /* per-card collapse */
+      card.querySelector('.colBtn').addEventListener('click', function(){
+        card.classList.toggle('collapsed');
       });
 
       frag.appendChild(card);
 
-      // Animated connector when the next cut is SAME SCENE.
-      var next = cuts[idx + 1];
-      if(next && next.token === 'SAME SCENE'){
-        card.classList.add('linked');
-        var conn = document.createElement('div');
-        conn.className = 'connector';
-        frag.appendChild(conn);
+      /* connector only in the unfiltered view */
+      if(currentFilter === 'all' && !allCollapsed){
+        var next = cuts[idx + 1];
+        if(next && next.token === 'SAME SCENE'){
+          card.classList.add('linked');
+          var conn = document.createElement('div');
+          conn.className = 'connector';
+          frag.appendChild(conn);
+        }
       }
     });
 
     cardsEl.appendChild(frag);
 
+    if(visible === 0){
+      emptyEl.textContent = 'No cuts match this filter.';
+      emptyEl.classList.add('show');
+    }
+
     statusEl.innerHTML =
       '<span><b>' + cuts.length + '</b> cuts</span>' +
-      '<span class="pill-new"><b>' + newCount + '</b> NEW SCENE</span>' +
-      '<span class="pill-same"><b>' + sameCount + '</b> SAME SCENE</span>' +
-      (parts > 1 ? '<span class="pill-merge"><b>' + parts + '</b> parts merged &middot; renumbered</span>' : '');
+      '<span class="pill-new"><b>' + s.newCount + '</b> NEW SCENE</span>' +
+      '<span class="pill-same"><b>' + s.sameCount + '</b> SAME SCENE</span>' +
+      (state.parts > 1 ? '<span class="pill-merge"><b>' + state.parts + '</b> parts merged &middot; renumbered</span>' : '');
     statusEl.classList.add('show');
 
-    /* #10 session dashboard */
-    renderDashboard(cuts, newCount, sameCount, parts);
+    updateToolbar(s);
+    renderDashboard(cuts, s.newCount, s.sameCount, state.parts);
   }
 
-  /* ---------- copy (#5: mark copied cards) ---------- */
-  function copyText(text, btn, card){
+  /* ---------- #2 #4 #12 toolbar (progress, filters, copy-next) ---------- */
+  function updateToolbar(s){
+    toolbarEl.classList.add('show');
+    var copied = 0, uncopied = 0, flagged = 0;
+    state.cuts.forEach(function(c){
+      if(c.copied) copied++; else uncopied++;
+      if(c.flagged) flagged++;
+    });
+    var total = state.cuts.length;
+    document.getElementById('progLabel').textContent = copied + ' of ' + total;
+    document.getElementById('progFill').style.width = (total ? copied / total * 100 : 0) + '%';
+    document.getElementById('cntAll').textContent  = total;
+    document.getElementById('cntNew').textContent  = s.newCount;
+    document.getElementById('cntSame').textContent = s.sameCount;
+    document.getElementById('cntUn').textContent   = uncopied;
+    document.getElementById('cntFlag').textContent = flagged;
+
+    var nextBtn = document.getElementById('copyNextBtn');
+    var label   = document.getElementById('copyNextLabel');
+    if(uncopied === 0){
+      nextBtn.disabled = true; label.textContent = 'All copied ✓';
+    } else {
+      nextBtn.disabled = false; label.textContent = 'Copy next (' + uncopied + ' left)';
+    }
+    document.getElementById('collapseBtn').textContent = allCollapsed ? 'Expand all' : 'Collapse all';
+  }
+
+  /* ---------- #53 haptic tap ---------- */
+  function buzz(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
+
+  /* ---------- copy (#5 persist mark, #3 auto-scroll, #53 haptic) ---------- */
+  function copyText(text, btn, card, cut, opts){
+    opts = opts || {};
     function done(ok){
       if(!ok) return;
+      buzz(15);
+      if(cut){
+        cut.copied = true;
+        persistProject();
+      }
       btn.classList.add('copied');
       btn.innerHTML = CHECK_ICON + '<span>Copied</span>';
       if(card) card.classList.add('done');
-      setTimeout(function(){
-        btn.classList.remove('copied');
-        btn.innerHTML = COPY_ICON + '<span>Copy</span>';
-      }, 1400);
+      /* refresh progress bar + counts without a full re-render flicker */
+      var s = statsOf(state.cuts);
+      updateToolbar(s);
+      /* #3 auto-scroll to the next un-copied card */
+      if(opts.scrollNext !== false) scrollToNextUncopied(cut);
     }
     if(navigator.clipboard && navigator.clipboard.writeText){
       navigator.clipboard.writeText(text).then(function(){done(true);}, function(){fallbackCopy(text, done);});
     } else {
       fallbackCopy(text, done);
     }
+  }
+
+  /* #3 find + smooth-scroll to the next uncopied card after `afterCut` */
+  function scrollToNextUncopied(afterCut){
+    var startIdx = afterCut ? state.cuts.indexOf(afterCut) + 1 : 0;
+    var target = null;
+    for(var i = startIdx; i < state.cuts.length; i++){
+      if(!state.cuts[i].copied){ target = state.cuts[i]; break; }
+    }
+    if(!target){
+      for(var j = 0; j < state.cuts.length; j++){
+        if(!state.cuts[j].copied){ target = state.cuts[j]; break; }
+      }
+    }
+    if(!target) return;
+    /* map the target cut to its rendered card (respecting current filter) */
+    var visIndex = -1, k;
+    for(k = 0; k < state.cuts.length; k++){
+      if(passesFilter(state.cuts[k])) visIndex++;
+      if(state.cuts[k] === target) break;
+    }
+    if(!passesFilter(target)) return;
+    var el = cardsEl.querySelectorAll('.card')[visIndex];
+    if(el) el.scrollIntoView({ behavior:'smooth', block:'center' });
   }
 
   function fallbackCopy(text, cb){
@@ -921,70 +1593,248 @@
     lsSet('scs_cb', on ? '1' : '0');
   });
 
-  /* ---------- #8 remember last session ---------- */
+  /* ---------- input auto-save into the current project (#29) ---------- */
   var saveTimer;
-  function saveInputs(){
-    lsSet('scs_result', resultInput.value);
-    lsSet('scs_prompt', promptInput.value);
-  }
   function queueSave(){
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(saveInputs, 400);
+    saveTimer = setTimeout(persistProject, 400);
   }
   resultInput.addEventListener('input', queueSave);
   promptInput.addEventListener('input', queueSave);
 
-  (function restoreSession(){
-    var r = lsGet('scs_result');
-    var p = lsGet('scs_prompt');
-    if(r !== null) resultInput.value = r;
-    if(p !== null) promptInput.value = p;
-    if((r || '').trim()) render();
-  })();
-
-  /* ---------- #24 undo after clear ---------- */
+  /* ---------- #52 confirm before clear + #24 undo after clear ---------- */
   var clearedSnapshot = null;
-  var undoTimer = null;
-  function exitUndoMode(){
-    clearTimeout(undoTimer);
-    undoTimer = null;
-    clearedSnapshot = null;
+  var clearState = 'idle'; /* idle | confirm | undo */
+  var clearTimer = null;
+  function exitClearConfirm(){
+    clearTimeout(clearTimer); clearTimer = null;
+    clearedSnapshot = null; clearState = 'idle';
     clearBtn.classList.remove('undo');
     clearBtn.textContent = 'Clear';
   }
-  clearBtn.addEventListener('click', function(){
-    if(clearedSnapshot){
-      /* restore */
-      resultInput.value = clearedSnapshot.r;
-      promptInput.value = clearedSnapshot.p;
-      exitUndoMode();
-      saveInputs();
-      render();
-      return;
-    }
-    if(!resultInput.value && !promptInput.value) return;
-    clearedSnapshot = { r: resultInput.value, p: promptInput.value };
-    resultInput.value = '';
-    promptInput.value = '';
-    cardsEl.innerHTML = '';
-    statusEl.classList.remove('show');
-    emptyEl.classList.remove('show');
-    dashEl.classList.remove('show');
-    dashBody.innerHTML = '';
-    document.title = BASE_TITLE;
-    saveInputs();
+  function doClear(){
+    clearedSnapshot = { r: resultInput.value, p: promptInput.value,
+                        cutsState: state.cuts.slice(), parts: state.parts };
+    resultInput.value = ''; promptInput.value = '';
+    state.cuts = []; state.parts = 1;
+    currentFilter = 'all'; allCollapsed = false;
+    syncFilterChips();
+    renderCards();
+    compareEl.classList.remove('show');
+    persistProject();
     resultInput.focus();
+    clearState = 'undo';
     clearBtn.classList.add('undo');
     clearBtn.textContent = 'Undo';
-    undoTimer = setTimeout(exitUndoMode, 8000);
+    clearTimer = setTimeout(exitClearConfirm, 8000);
+  }
+  clearBtn.addEventListener('click', function(){
+    if(clearState === 'undo' && clearedSnapshot){
+      resultInput.value = clearedSnapshot.r;
+      promptInput.value = clearedSnapshot.p;
+      state.cuts = clearedSnapshot.cutsState;
+      state.parts = clearedSnapshot.parts;
+      exitClearConfirm();
+      persistProject();
+      renderCards();
+      return;
+    }
+    if(clearState === 'confirm'){ doClear(); return; }
+    if(!resultInput.value && !promptInput.value) return;
+    clearState = 'confirm';
+    clearBtn.textContent = 'Confirm clear?';
+    clearTimer = setTimeout(exitClearConfirm, 4000);
+  });
+
+  /* ---------- #29 project controls ---------- */
+  projectSel.addEventListener('change', function(){ switchProject(projectSel.value); });
+  document.getElementById('newProjBtn').addEventListener('click', function(){
+    persistProject();
+    var projs = getProjects();
+    var name = prompt('New project name:', 'Project ' + (Object.keys(projs).length + 1));
+    if(name === null) return;
+    var id = uid();
+    projs[id] = { name: (name.trim() || 'Untitled'), result:'', prompt:'', cutsState:null, parts:1, lastStats:null };
+    saveProjects(projs);
+    lsSet('scs_current', id);
+    loadProjectIntoView();
+  });
+  document.getElementById('renameProjBtn').addEventListener('click', function(){
+    var projs = getProjects(); var id = currentProjectId();
+    if(!projs[id]) return;
+    var name = prompt('Rename project:', projs[id].name);
+    if(name === null) return;
+    projs[id].name = name.trim() || projs[id].name;
+    saveProjects(projs);
+    renderProjectList();
+  });
+  document.getElementById('delProjBtn').addEventListener('click', function(){
+    var projs = getProjects(); var id = currentProjectId();
+    var keys = Object.keys(projs);
+    if(keys.length <= 1){ alert('This is your only project — nothing to switch to. Use Clear instead.'); return; }
+    if(!confirm('Delete project "' + projs[id].name + '"? This cannot be undone.')) return;
+    delete projs[id];
+    saveProjects(projs);
+    lsSet('scs_current', Object.keys(projs)[0]);
+    loadProjectIntoView();
+  });
+
+  /* ---------- #36 preset controls ---------- */
+  presetSel.addEventListener('change', function(){
+    var v = presetSel.value; if(v === '') return;
+    var ps = getPresets();
+    if(ps[v]){ promptInput.value = ps[v].text; queueSave(); renderCards(); }
+    presetSel.value = '';
+  });
+  document.getElementById('savePresetBtn').addEventListener('click', function(){
+    var text = (promptInput.value || '').trim();
+    if(!text){ alert('Type or paste a style prompt first.'); return; }
+    var name = prompt('Name this preset:', 'Preset ' + (getPresets().length + 1));
+    if(name === null) return;
+    var ps = getPresets();
+    ps.push({ name: name.trim() || 'Preset', text: text });
+    jSet('scs_presets', ps);
+    renderPresetList();
+  });
+  document.getElementById('delPresetBtn').addEventListener('click', function(){
+    var ps = getPresets();
+    if(!ps.length){ alert('No presets saved yet.'); return; }
+    var list = ps.map(function(p,i){ return (i+1) + '. ' + p.name; }).join('\n');
+    var n = prompt('Delete which preset? Enter its number:\n\n' + list);
+    if(n === null) return;
+    var idx = parseInt(n,10) - 1;
+    if(idx >= 0 && idx < ps.length){ ps.splice(idx,1); jSet('scs_presets', ps); renderPresetList(); }
+  });
+
+  /* ---------- #12 filter chips ---------- */
+  var filterRow = document.getElementById('filterRow');
+  function syncFilterChips(){
+    Array.prototype.forEach.call(filterRow.querySelectorAll('.chip'), function(c){
+      c.classList.toggle('on', c.getAttribute('data-filter') === currentFilter);
+    });
+  }
+  filterRow.addEventListener('click', function(e){
+    var chip = e.target.closest('.chip'); if(!chip) return;
+    currentFilter = chip.getAttribute('data-filter');
+    syncFilterChips();
+    renderCards();
+  });
+
+  /* ---------- #14 collapse all ---------- */
+  document.getElementById('collapseBtn').addEventListener('click', function(){
+    allCollapsed = !allCollapsed;
+    renderCards();
+  });
+
+  /* ---------- #2 copy next ---------- */
+  document.getElementById('copyNextBtn').addEventListener('click', function(){
+    var stylePrompt = (promptInput.value || '').trim();
+    var target = null;
+    for(var i = 0; i < state.cuts.length; i++){
+      if(!state.cuts[i].copied){ target = state.cuts[i]; break; }
+    }
+    if(!target) return;
+    var d = deriveCut(target, stylePrompt);
+    /* ensure the target is visible under the current filter, else jump to All */
+    if(!passesFilter(target)){ currentFilter = 'all'; syncFilterChips(); renderCards(); }
+    var visIndex = -1;
+    for(var k = 0; k < state.cuts.length; k++){
+      if(passesFilter(state.cuts[k])) visIndex++;
+      if(state.cuts[k] === target) break;
+    }
+    var cardEl = cardsEl.querySelectorAll('.card')[visIndex];
+    var btn = cardEl ? cardEl.querySelector('.btn-copy') : { classList:{add:function(){}}, innerHTML:'' };
+    copyText(d.fullCopy, btn, cardEl, target);
+  });
+
+  /* ---------- #48 paste buttons ---------- */
+  function pasteInto(el){
+    if(navigator.clipboard && navigator.clipboard.readText){
+      navigator.clipboard.readText().then(function(t){
+        el.value = t; queueSave(); el.focus();
+      }, function(){ el.focus(); alert('Could not read clipboard — long-press the box and paste manually.'); });
+    } else {
+      el.focus(); alert('Paste not supported here — long-press the box and paste manually.');
+    }
+  }
+  document.getElementById('pasteResult').addEventListener('click', function(){ pasteInto(resultInput); });
+  document.getElementById('pastePrompt').addEventListener('click', function(){ pasteInto(promptInput); });
+
+  /* ---------- #50 scroll-to-top ---------- */
+  var topFab = document.getElementById('topFab');
+  window.addEventListener('scroll', function(){
+    topFab.classList.toggle('show', window.scrollY > 500);
+  }, { passive:true });
+  topFab.addEventListener('click', function(){
+    window.scrollTo({ top:0, behavior:'smooth' });
+  });
+
+  /* ---------- #35 recent-sessions + #60 changelog modal ---------- */
+  var modalBack  = document.getElementById('modalBack');
+  var modalTitle = document.getElementById('modalTitle');
+  var modalBody  = document.getElementById('modalBody');
+  function openModal(){ modalBack.classList.add('show'); }
+  function closeModal(){ modalBack.classList.remove('show'); }
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  modalBack.addEventListener('click', function(e){ if(e.target === modalBack) closeModal(); });
+
+  document.getElementById('histBtn').addEventListener('click', function(){
+    var h = jGet('scs_history', []);
+    modalTitle.textContent = 'Recent sessions';
+    if(!h.length){
+      modalBody.innerHTML = '<div class="hist-empty">No saved sessions yet.<br>Generate some cuts and they\'ll appear here.</div>';
+    } else {
+      modalBody.innerHTML = h.map(function(item, i){
+        return '<div class="hist-item">' +
+          '<div class="hi-main">' +
+            '<div class="hi-name">' + esc(item.name) + '</div>' +
+            '<div class="hi-sub">' + item.cuts + ' cuts · ' + item.scenes + ' scenes</div>' +
+          '</div>' +
+          '<button class="mini-btn" data-hist="' + i + '">Restore</button>' +
+        '</div>';
+      }).join('');
+    }
+    openModal();
+  });
+  modalBody.addEventListener('click', function(e){
+    var b = e.target.closest('button[data-hist]'); if(!b) return;
+    var h = jGet('scs_history', []);
+    var item = h[parseInt(b.getAttribute('data-hist'),10)];
+    if(!item) return;
+    resultInput.value = item.result || '';
+    promptInput.value = item.prompt || '';
+    closeModal();
+    generate();
+    window.scrollTo({ top:0, behavior:'smooth' });
+  });
+
+  document.getElementById('verNum').textContent = VERSION;
+  document.getElementById('verBtn').addEventListener('click', function(){
+    modalTitle.textContent = "What's new";
+    modalBody.innerHTML = '<div class="change-log">' + CHANGELOG.map(function(v){
+      return '<b>Version ' + v[0] + '</b><ul>' + v[1].map(function(li){
+        return '<li>' + esc(li) + '</li>';
+      }).join('') + '</ul>';
+    }).join('') + '</div>';
+    openModal();
   });
 
   /* make sure the dashboard is expanded in the printed shot list */
-  window.addEventListener('beforeprint', function(){
-    dashEl.open = true;
-  });
+  window.addEventListener('beforeprint', function(){ dashEl.open = true; });
 
-  generateBtn.addEventListener('click', render);
+  generateBtn.addEventListener('click', function(){ generate(); });
+
+  /* ---------- #45 PWA: register the service worker ---------- */
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js').catch(function(){});
+    });
+  }
+
+  /* ---------- boot ---------- */
+  ensureProject();
+  renderPresetList();
+  loadProjectIntoView();
 })();
 </script>
 </body>
