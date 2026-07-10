@@ -897,24 +897,11 @@
       <button class="chip" data-filter="flagged" type="button">⚠️ Flagged <span class="cnt" id="cntFlag"></span></button>
     </div>
     <div class="tool-row">
-      <button class="chip" id="collapseBtn" type="button">Collapse all</button>
       <div class="spacer"></div>
       <button class="btn-copynext" id="copyNextBtn" type="button">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         <span id="copyNextLabel">Copy next</span>
       </button>
-    </div>
-  </div>
-
-  <!-- scene index — small 1..last labels split into two groups (tap to jump) -->
-  <div class="scene-index" id="sceneIndex">
-    <div class="si-group">
-      <div class="si-head"><span class="dotc p"></span>New + Same <span class="si-cnt" id="siContCnt"></span></div>
-      <div class="si-nums" id="siCont"></div>
-    </div>
-    <div class="si-group">
-      <div class="si-head"><span class="dotc n"></span>New <span class="si-cnt" id="siAloneCnt"></span></div>
-      <div class="si-nums" id="siAlone"></div>
     </div>
   </div>
 
@@ -1047,7 +1034,7 @@
     projs[id].prompt = promptInput.value;
     projs[id].cutsState = state.cuts.length ? state.cuts.map(function(c){
       return { num:c.num, origNum:c.origNum, vo:c.vo, token:c.token, scene:c.scene,
-               framing:c.framing, copied:!!c.copied, flagged:!!c.flagged, dup:!!c.dup };
+               framing:c.framing, copied:!!c.copied, flagged:!!c.flagged, dup:!!c.dup, collapsed:!!c.collapsed };
     }) : null;
     projs[id].parts = state.parts;
     saveProjects(projs);
@@ -1380,9 +1367,10 @@
 
   /* ---------- #12 filter test ---------- */
   function passesFilter(cut){
+    var i = state.cuts.indexOf(cut);
     switch(currentFilter){
-      case 'new':      return cut.token !== 'SAME SCENE';
-      case 'same':     return cut.token === 'SAME SCENE';
+      case 'new':      return !isContinuation(cut, i);  /* standalone lone NEW */
+      case 'same':     return isContinuation(cut, i);   /* new + same */
       case 'uncopied': return !cut.copied;
       case 'flagged':  return !!cut.flagged;
       default:         return true;
@@ -1399,7 +1387,6 @@
     emptyEl.classList.remove('show');
     dashEl.classList.remove('show'); dashBody.innerHTML = '';
     toolbarEl.classList.remove('show');
-    document.getElementById('sceneIndex').classList.remove('show');
     document.title = BASE_TITLE;
 
     if(!(resultInput.value || '').trim() && !cuts.length){
@@ -1426,9 +1413,8 @@
 
       var card = document.createElement('article');
       card.className = 'card' + (cut.copied ? ' done' : '') + (cut.flagged ? ' flagged' : '') +
-                       (cut.dup ? ' dup' : '') + (allCollapsed ? ' collapsed' : '');
+                       (cut.dup ? ' dup' : '') + (cut.collapsed ? ' collapsed' : '');
       card.style.animationDelay = Math.min(idx * 30, 360) + 'ms';
-      card.setAttribute('data-ord', idx + 1); /* small 1..last order label */
 
       var badgeClass = d.isSame ? 'same' : 'new';
       var badgeText  = cut.token || 'NEW SCENE';
@@ -1449,7 +1435,6 @@
 
       card.innerHTML =
         '<div class="card-head">' +
-          '<span class="ord" title="order (1 to last)">' + (idx + 1) + '</span>' +
           '<span class="cut-no">🦕 ' + esc(cut.num) + '</span>' +
           (cut.origNum ? '<span class="was">was ' + esc(cut.origNum) + '</span>' : '') +
           '<span class="badge ' + badgeClass + '">' + esc(badgeText) + '</span>' +
@@ -1488,7 +1473,9 @@
       });
       /* per-card collapse */
       card.querySelector('.colBtn').addEventListener('click', function(){
-        card.classList.toggle('collapsed');
+        cut.collapsed = !cut.collapsed;
+        card.classList.toggle('collapsed', cut.collapsed);
+        persistProject();
       });
 
       frag.appendChild(card);
@@ -1520,7 +1507,6 @@
     statusEl.classList.add('show');
 
     updateToolbar(s);
-    renderSceneIndex();
     renderDashboard(cuts, s.newCount, s.sameCount, state.parts);
   }
 
@@ -1535,57 +1521,22 @@
     var next = state.cuts[i + 1];
     return !!(next && next.token === 'SAME SCENE');
   }
-  function renderSceneIndex(){
-    var contEl  = document.getElementById('siCont');
-    var aloneEl = document.getElementById('siAlone');
-    contEl.innerHTML = ''; aloneEl.innerHTML = '';
-    var cN = 0, aN = 0;
-    state.cuts.forEach(function(cut, i){
-      var ord = i + 1;
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'si-num' + (cut.copied ? ' done' : '') + (cut.flagged ? ' flagged' : '');
-      btn.textContent = ord;
-      btn.setAttribute('data-ord', ord);
-      btn.title = '🦕 ' + cut.num + ' — tap to jump';
-      if(isContinuation(cut, i)){ contEl.appendChild(btn); cN++; }
-      else { aloneEl.appendChild(btn); aN++; }
-    });
-    if(!cN) contEl.innerHTML  = '<span class="si-empty">none</span>';
-    if(!aN) aloneEl.innerHTML = '<span class="si-empty">none</span>';
-    document.getElementById('siContCnt').textContent  = cN;
-    document.getElementById('siAloneCnt').textContent = aN;
-    document.getElementById('sceneIndex').classList.add('show');
-  }
-
-  /* jump to a card by its order number, then flash it */
-  function scrollToOrd(ord){
-    var cut = state.cuts[ord - 1];
-    if(!cut) return;
-    if(!passesFilter(cut)){ currentFilter = 'all'; syncFilterChips(); renderCards(); }
-    var el = cardsEl.querySelector('.card[data-ord="' + ord + '"]');
-    if(!el) return;
-    el.scrollIntoView({ behavior:'smooth', block:'center' });
-    el.classList.remove('flash');
-    void el.offsetWidth; /* restart the animation */
-    el.classList.add('flash');
-    setTimeout(function(){ el.classList.remove('flash'); }, 1400);
-  }
 
   /* ---------- #2 #4 #12 toolbar (progress, filters, copy-next) ---------- */
   function updateToolbar(s){
     toolbarEl.classList.add('show');
-    var copied = 0, uncopied = 0, flagged = 0;
-    state.cuts.forEach(function(c){
+    var copied = 0, uncopied = 0, flagged = 0, cont = 0;
+    state.cuts.forEach(function(c, i){
       if(c.copied) copied++; else uncopied++;
       if(c.flagged) flagged++;
+      if(isContinuation(c, i)) cont++;
     });
     var total = state.cuts.length;
     document.getElementById('progLabel').textContent = copied + ' of ' + total;
     document.getElementById('progFill').style.width = (total ? copied / total * 100 : 0) + '%';
     document.getElementById('cntAll').textContent  = total;
-    document.getElementById('cntNew').textContent  = s.newCount;
-    document.getElementById('cntSame').textContent = s.sameCount;
+    document.getElementById('cntNew').textContent  = total - cont; /* standalone */
+    document.getElementById('cntSame').textContent = cont;         /* new + same */
     document.getElementById('cntUn').textContent   = uncopied;
     document.getElementById('cntFlag').textContent = flagged;
 
@@ -1596,7 +1547,6 @@
     } else {
       nextBtn.disabled = false; label.textContent = 'Copy next (' + uncopied + ' left)';
     }
-    document.getElementById('collapseBtn').textContent = allCollapsed ? 'Expand all' : 'Collapse all';
   }
 
   /* ---------- #53 haptic tap ---------- */
@@ -1618,7 +1568,6 @@
       /* refresh progress bar + counts without a full re-render flicker */
       var s = statsOf(state.cuts);
       updateToolbar(s);
-      renderSceneIndex(); /* strike through this number in the index too */
       /* #3 auto-scroll to the next un-copied card */
       if(opts.scrollNext !== false) scrollToNextUncopied(cut);
     }
@@ -1839,17 +1788,6 @@
     renderCards();
   });
 
-  /* ---------- #14 collapse all ---------- */
-  document.getElementById('collapseBtn').addEventListener('click', function(){
-    allCollapsed = !allCollapsed;
-    renderCards();
-  });
-
-  /* ---------- scene index: tap a number to jump to its card ---------- */
-  document.getElementById('sceneIndex').addEventListener('click', function(e){
-    var b = e.target.closest('.si-num'); if(!b) return;
-    scrollToOrd(parseInt(b.getAttribute('data-ord'), 10));
-  });
 
   /* ---------- #2 copy next ---------- */
   document.getElementById('copyNextBtn').addEventListener('click', function(){
