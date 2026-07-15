@@ -1,7 +1,10 @@
 /* Scene Cut Splitter — offline service worker (#45)
    Caches the app shell so it opens fully offline once installed.
    Bump CACHE when you change any cached file so clients update. */
-var CACHE = 'scs-v2.0';
+var CACHE = 'scs-v2.2';
+
+/* Notebook-skin fonts: cached on first fetch so the skin works offline */
+var FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 var ASSETS = [
   './',
   './index.html',
@@ -43,9 +46,12 @@ self.addEventListener('fetch', function(e){
     caches.match(req).then(function(hit){
       if(hit) return hit;
       return fetch(req).then(function(res){
-        /* stash same-origin successes for next time */
+        /* stash same-origin successes + font files for next time */
         try{
-          if(res && res.ok && new URL(req.url).origin === self.location.origin){
+          var u = new URL(req.url);
+          var cacheable = u.origin === self.location.origin ||
+                          FONT_HOSTS.indexOf(u.hostname) !== -1;
+          if(res && (res.ok || res.type === 'opaque') && cacheable){
             var copy = res.clone();
             caches.open(CACHE).then(function(c){ c.put(req, copy); });
           }
