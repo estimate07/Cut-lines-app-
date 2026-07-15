@@ -13,6 +13,11 @@
 <meta name="apple-mobile-web-app-title" content="Cut Splitter">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<!-- Notebook-skin handwriting fonts. Cached by the service worker after the
+     first online visit; if never fetched, the skin falls back to system fonts. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0f1115;
@@ -375,7 +380,7 @@
 
   .vo-line{
     padding:10px 14px 0;
-    font-size:12.5px;
+    font-size:var(--read-fs,12.5px);
     line-height:1.5;
     color:var(--ink-dim);
     font-style:italic;
@@ -391,7 +396,7 @@
     max-height:300px;
     overflow-y:auto;
     font-family:var(--mono);
-    font-size:12px;
+    font-size:var(--read-fs,12px);
     line-height:1.6;
     color:var(--ink-dim);
     white-space:pre-wrap;
@@ -781,9 +786,425 @@
   }
   .footer button:hover{color:var(--ink-dim)}
 
+  /* ========================================================
+     NEW FEATURES (v2.1)
+     ======================================================== */
+
+  /* ---------- merged view: all script lines in one tab (B) ---------- */
+  .card.merged{padding:4px 0 6px}
+  .card.merged .merged-head{
+    display:flex;align-items:center;gap:10px;
+    padding:12px 14px;border-bottom:1px solid var(--line);
+    background:var(--panel-2);
+    font-size:12px;font-weight:700;letter-spacing:.5px;
+    text-transform:uppercase;color:var(--ink-dim);
+  }
+  .card.merged .merged-head .mh-cnt{margin-left:auto;font-family:var(--mono);color:var(--ink-faint);text-transform:none}
+  .mrow{
+    display:flex;align-items:flex-start;gap:10px;
+    padding:10px 14px;
+    border-bottom:1px solid var(--line);
+    transition:background .16s,opacity .2s;
+  }
+  .mrow:last-child{border-bottom:none}
+  .mrow.done{opacity:.5}
+  .mrow.flagged{background:var(--accent-soft)}
+  .mrow .mno{
+    font-family:var(--mono);font-size:12px;font-weight:700;
+    color:var(--ink);white-space:nowrap;padding-top:2px;min-width:44px;
+  }
+  .mrow .mdot{
+    width:8px;height:8px;border-radius:2px;flex:none;margin-top:6px;
+  }
+  .mrow .mdot.n{background:var(--new)}
+  .mrow .mdot.s{background:var(--same)}
+  .mrow .mtext{
+    flex:1;min-width:0;
+    font-size:var(--read-fs,12.5px);line-height:1.5;color:var(--ink);
+    word-break:break-word;
+  }
+  .mrow .mtext .mmuted{color:var(--ink-faint);font-style:italic}
+  .mrow .mcopy{
+    appearance:none;cursor:pointer;flex:none;
+    display:inline-flex;align-items:center;justify-content:center;
+    width:32px;height:32px;border-radius:8px;
+    background:transparent;border:1px solid var(--line);
+    color:var(--ink-dim);
+    -webkit-tap-highlight-color:transparent;
+    transition:color .16s,border-color .16s,background .16s,transform .12s;
+  }
+  .mrow .mcopy:active{transform:scale(.9)}
+  .mrow .mcopy:hover{color:var(--ink);border-color:var(--ink-faint)}
+  .mrow .mcopy.copied{background:var(--new-soft);border-color:transparent;color:var(--new)}
+  .mrow .mcopy svg{width:15px;height:15px}
+
+  /* merge toggle chip lives in the toolbar */
+  .toggle-chip{
+    appearance:none;cursor:pointer;
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--panel);border:1px solid var(--line);
+    color:var(--ink-dim);
+    font-family:var(--sans);font-size:12px;font-weight:600;
+    padding:7px 12px;border-radius:999px;
+    -webkit-tap-highlight-color:transparent;
+    transition:color .16s,border-color .16s,background .16s,transform .12s;
+    white-space:nowrap;
+  }
+  .toggle-chip:active{transform:scale(.95)}
+  .toggle-chip:hover{color:var(--ink);border-color:var(--ink-faint)}
+  .toggle-chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+  .toggle-chip svg{width:14px;height:14px}
+
+  /* ---------- resume banner (25) ---------- */
+  .resume-bar{
+    display:none;align-items:center;gap:11px;
+    margin-top:14px;
+    background:var(--new-soft);
+    border:1px solid var(--new);
+    border-radius:var(--radius-sm);
+    padding:11px 13px;
+  }
+  .resume-bar.show{display:flex}
+  .resume-bar .rb-txt{flex:1;min-width:0;font-size:12.5px;font-weight:600;color:var(--ink)}
+  .resume-bar .rb-txt small{display:block;font-weight:500;color:var(--ink-dim);font-size:11px;margin-top:1px}
+  .resume-bar .rb-go{
+    appearance:none;cursor:pointer;flex:none;
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--new);border:none;color:#08120c;
+    font-family:var(--sans);font-size:12.5px;font-weight:700;
+    padding:8px 13px;border-radius:999px;
+    -webkit-tap-highlight-color:transparent;transition:transform .12s;
+  }
+  .resume-bar .rb-go:active{transform:scale(.96)}
+  .resume-bar .rb-x{
+    appearance:none;cursor:pointer;flex:none;
+    width:28px;height:28px;border-radius:999px;
+    background:transparent;border:1px solid var(--line);color:var(--ink-faint);
+    -webkit-tap-highlight-color:transparent;font-size:15px;line-height:1;
+  }
+  .resume-bar .rb-x:hover{color:var(--ink)}
+
+  /* ---------- bottom action bar (23) ---------- */
+  .bottombar{
+    display:none;
+    position:fixed;left:0;right:0;
+    bottom:0;
+    z-index:45;
+    align-items:center;gap:10px;
+    padding:9px 14px calc(9px + env(safe-area-inset-bottom));
+    background:color-mix(in srgb, var(--panel) 92%, transparent);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    border-top:1px solid var(--line);
+  }
+  .bottombar.show{display:flex}
+  body.has-bottombar{padding-bottom:calc(88px + env(safe-area-inset-bottom))}
+  .bottombar .bb-prog{
+    display:flex;flex-direction:column;gap:3px;min-width:66px;
+  }
+  .bottombar .bb-prog b{font-family:var(--mono);font-size:12.5px;color:var(--ink)}
+  .bottombar .bb-prog .bb-mini{
+    height:5px;width:64px;border-radius:999px;background:var(--panel-2);overflow:hidden;
+  }
+  .bottombar .bb-prog .bb-mini i{display:block;height:100%;width:0;background:var(--new);transition:width .3s}
+  .bottombar .bb-next{
+    flex:1;appearance:none;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;gap:7px;
+    background:var(--new);border:none;color:#08120c;
+    font-family:var(--sans);font-size:14px;font-weight:700;
+    padding:12px 15px;border-radius:999px;
+    box-shadow:0 3px 14px rgba(76,195,138,.3);
+    -webkit-tap-highlight-color:transparent;transition:transform .12s,opacity .18s,background .18s;
+  }
+  .bottombar .bb-next:active{transform:scale(.97)}
+  .bottombar .bb-next:disabled{opacity:.5;cursor:default;box-shadow:none;background:var(--panel-2);color:var(--ink-faint)}
+  .bottombar .bb-next svg{width:15px;height:15px}
+  .bottombar .bb-top{
+    flex:none;appearance:none;cursor:pointer;
+    width:44px;height:44px;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;
+    background:var(--panel);border:1px solid var(--line);color:var(--ink-dim);
+    -webkit-tap-highlight-color:transparent;transition:transform .12s,color .18s;
+  }
+  .bottombar .bb-top:active{transform:scale(.92)}
+  .bottombar .bb-top svg{width:19px;height:19px}
+  /* nudge the scroll-to-top FAB above the bottom bar when it shows */
+  body.has-bottombar .fab{bottom:calc(84px + env(safe-area-inset-bottom))}
+
+  /* ---------- settings: density + font size (26) ---------- */
+  .set-group{margin-bottom:18px}
+  .set-group .set-h{
+    font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+    color:var(--ink-faint);margin-bottom:9px;
+  }
+  .seg{display:flex;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .seg button{
+    flex:1;appearance:none;cursor:pointer;
+    background:var(--panel);border:none;border-right:1px solid var(--line);
+    color:var(--ink-dim);font-family:var(--sans);font-size:13px;font-weight:600;
+    padding:10px 8px;-webkit-tap-highlight-color:transparent;transition:background .16s,color .16s;
+  }
+  .seg button:last-child{border-right:none}
+  .seg button.on{background:var(--accent-soft);color:var(--accent)}
+  .fs-row{display:flex;align-items:center;gap:12px}
+  .fs-row input[type=range]{flex:1;accent-color:var(--accent);height:26px}
+  .fs-row .fs-val{font-family:var(--mono);font-size:12.5px;color:var(--ink);min-width:44px;text-align:right}
+  .fs-preview{
+    margin-top:11px;padding:11px 12px;border:1px dashed var(--line);border-radius:var(--radius-sm);
+    background:var(--panel-2);color:var(--ink-dim);
+    font-family:var(--mono);font-size:var(--read-fs,12px);line-height:1.5;
+  }
+  .set-reset{margin-top:2px}
+
+  /* ---------- density: compact (26) ---------- */
+  :root[data-density="compact"] .card-head{padding:8px 12px}
+  :root[data-density="compact"] .card-body{padding:9px 12px}
+  :root[data-density="compact"] .vo-line{padding:7px 12px 0}
+  :root[data-density="compact"] .desc-box{padding:9px 10px;max-height:210px}
+  :root[data-density="compact"] .card{margin-bottom:9px}
+  :root[data-density="compact"] .cut-meta{margin-top:6px}
+  :root[data-density="compact"] .framing{margin-top:8px;padding:7px 10px}
+  :root[data-density="compact"] .mrow{padding:7px 12px}
+
+  /* ---------- trash list rows (6) ---------- */
+  .trash-sub{font-size:11.5px;color:var(--ink-faint);margin:-4px 0 12px}
+  .hist-item .hi-actions{display:flex;gap:6px}
+  .hist-item .hi-actions .mini-btn{padding:7px 10px}
+
+  /* ---------- finish-line celebration (31) ---------- */
+  .toast{
+    position:fixed;left:50%;transform:translateX(-50%) translateY(20px);
+    bottom:calc(96px + env(safe-area-inset-bottom));
+    z-index:70;opacity:0;pointer-events:none;
+    background:var(--new);color:#08120c;
+    font-size:13.5px;font-weight:700;
+    padding:11px 18px;border-radius:999px;
+    box-shadow:0 6px 22px rgba(0,0,0,.3);
+    transition:opacity .3s,transform .3s;white-space:nowrap;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .confetti-wrap{position:fixed;inset:0;z-index:65;pointer-events:none;overflow:hidden}
+  .confetti{
+    position:absolute;top:-14px;width:9px;height:14px;border-radius:2px;
+    animation:conffall linear forwards;
+  }
+  @keyframes conffall{
+    0%{transform:translateY(0) rotate(0);opacity:1}
+    100%{transform:translateY(108vh) rotate(720deg);opacity:.9}
+  }
+
+  /* ========================================================
+     NOTEBOOK SKIN (v2.2) — "midnight field notebook"
+     Re-paint only: colors, fonts, borders, textures. Every
+     size, padding and layout stays exactly as the classic
+     skin. Always dark — ignores the phone light setting.
+     ======================================================== */
+  :root[data-skin="nb"],
+  :root[data-skin="nb"][data-theme="light"]{
+    --bg:#0b0c0f;
+    --panel:#16181d;
+    --panel-2:#1b1e24;
+    --line:#313845;
+    --ink:#d7dde6;
+    --ink-dim:#9aa5b3;
+    --ink-faint:#7a8494;
+    --accent:#22d3ee;
+    --accent-soft:rgba(34,211,238,.14);
+    --new:#5eead4;
+    --new-soft:rgba(94,234,212,.13);
+    --same:#c4b5fd;
+    --same-soft:rgba(196,181,253,.14);
+    --nb-hand:'Patrick Hand',var(--sans);
+    --nb-title:'Caveat',cursive;
+    --nb-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  }
+  /* graph-paper backdrop */
+  :root[data-skin="nb"] body{
+    background-color:var(--bg);
+    background-image:
+      linear-gradient(rgba(34,211,238,.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34,211,238,.045) 1px, transparent 1px),
+      linear-gradient(rgba(34,211,238,.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34,211,238,.02) 1px, transparent 1px);
+    background-size:96px 96px, 96px 96px, 24px 24px, 24px 24px;
+    font-family:var(--nb-hand);
+  }
+  :root[data-skin="nb"] .brand h1{
+    font-family:var(--nb-title);
+    font-weight:700;
+    letter-spacing:.4px;
+    /* hand-drawn scribble underline */
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12'><path d='M2 6 Q 15 1, 30 6 T 60 6 T 90 6 T 120 6 T 150 6 T 180 6 T 198 6' fill='none' stroke='%2322d3ee' stroke-width='2' stroke-linecap='round'/></svg>");
+    background-repeat:no-repeat;
+    background-position:0 100%;
+    background-size:100% 6px;
+    padding-bottom:5px;
+  }
+  :root[data-skin="nb"] .brand .dot{
+    background:var(--accent);
+    box-shadow:0 0 12px rgba(34,211,238,.55);
+  }
+  :root[data-skin="nb"] .mono,
+  :root[data-skin="nb"] textarea,
+  :root[data-skin="nb"] .desc-box,
+  :root[data-skin="nb"] .cut-no,
+  :root[data-skin="nb"] .was,
+  :root[data-skin="nb"] .cut-meta,
+  :root[data-skin="nb"] .tile b,
+  :root[data-skin="nb"] .ord{
+    font-family:var(--nb-mono);
+  }
+  /* notebook-page panels: dashed hand-cut edges, uneven corners */
+  :root[data-skin="nb"] .inputs,
+  :root[data-skin="nb"] .dash,
+  :root[data-skin="nb"] .modal,
+  :root[data-skin="nb"] .scene-index{
+    border:1.5px dashed #39404b;
+    border-radius:6px 18px 18px 6px;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,.8), inset 0 0 90px rgba(0,0,0,.3);
+  }
+  :root[data-skin="nb"] .card{
+    border:1.5px dashed #39404b;
+    border-radius:8px 14px 8px 14px;
+    box-shadow:0 14px 34px -16px rgba(0,0,0,.7);
+  }
+  /* sticky-note tilt — straightens when touched */
+  :root[data-skin="nb"] .card:nth-child(odd){ transform:rotate(-0.3deg); }
+  :root[data-skin="nb"] .card:nth-child(even){ transform:rotate(0.25deg); }
+  :root[data-skin="nb"] .card:hover,
+  :root[data-skin="nb"] .card:active{ transform:rotate(0); border-color:#5eead4; }
+  :root[data-skin="nb"] .card.flagged{ border-color:var(--accent); border-style:dashed; }
+  /* buttons: pill shape with one squared corner, cyan glow when active */
+  :root[data-skin="nb"] .mini-btn,
+  :root[data-skin="nb"] .chip,
+  :root[data-skin="nb"] .toggle-chip,
+  :root[data-skin="nb"] .btn-copy,
+  :root[data-skin="nb"] .btn-print{
+    background:#20242c;
+    border:1.5px dashed #3a4250;
+    border-radius:999px 8px 999px 8px;
+    font-family:var(--nb-mono);
+  }
+  :root[data-skin="nb"] .mini-btn:hover,
+  :root[data-skin="nb"] .chip:hover,
+  :root[data-skin="nb"] .toggle-chip:hover,
+  :root[data-skin="nb"] .btn-copy:hover{ border-color:#5eead4; }
+  :root[data-skin="nb"] .chip.on,
+  :root[data-skin="nb"] .toggle-chip.on{
+    background:rgba(34,211,238,.14);
+    border-color:var(--accent);
+    color:var(--accent);
+    box-shadow:0 0 12px rgba(34,211,238,.35), inset 0 0 8px rgba(34,211,238,.15);
+  }
+  :root[data-skin="nb"] .btn-copy.copied{
+    background:var(--new-soft);
+    border-color:transparent;
+    color:var(--new);
+  }
+  :root[data-skin="nb"] .mini-btn.danger:hover{ color:#fb7185; border-color:#fb7185; }
+  /* the Generate button becomes the ink "stamp" */
+  :root[data-skin="nb"] .btn-generate{
+    font-family:var(--nb-title);
+    font-weight:700;
+    letter-spacing:.5px;
+    line-height:1.15; /* lock height to the classic size — skin never resizes */
+    background:var(--accent);
+    color:#06171b;
+    border-radius:14px 4px 14px 4px;
+    box-shadow:0 8px 24px -4px rgba(34,211,238,.55), inset 0 -4px 0 rgba(0,0,0,.15);
+  }
+  :root[data-skin="nb"] .btn-generate:hover{
+    background:#38dcf4;
+    transform:translateY(-1px) rotate(-0.4deg);
+    box-shadow:0 12px 30px -4px rgba(34,211,238,.7), inset 0 -4px 0 rgba(0,0,0,.15);
+  }
+  :root[data-skin="nb"] .btn-clear{ border:1.5px dashed var(--line); border-radius:14px 4px 14px 4px; }
+  :root[data-skin="nb"] .btn-copynext,
+  :root[data-skin="nb"] .bottombar .bb-next{
+    background:var(--accent);
+    color:#06171b;
+    border-radius:999px 8px 999px 8px;
+    box-shadow:0 3px 14px rgba(34,211,238,.35);
+  }
+  :root[data-skin="nb"] .btn-copynext:disabled,
+  :root[data-skin="nb"] .bottombar .bb-next:disabled{
+    background:var(--panel-2); color:var(--ink-faint); box-shadow:none;
+  }
+  /* striped, animated progress fills */
+  :root[data-skin="nb"] .progress-bar,
+  :root[data-skin="nb"] .bottombar .bb-mini{ border:1px dashed #3a4250; background:#0b0e13; }
+  :root[data-skin="nb"] .progress-bar i,
+  :root[data-skin="nb"] .bottombar .bb-mini i,
+  :root[data-skin="nb"] .ratio .r-new{
+    background:repeating-linear-gradient(45deg,#22d3ee 0 12px,#0891b2 12px 24px);
+    background-size:200% 100%;
+    animation:nbStripe 1.5s linear infinite;
+    box-shadow:0 0 14px rgba(34,211,238,.45);
+  }
+  :root[data-skin="nb"] .ratio .r-same{ background:var(--same); }
+  @keyframes nbStripe{ to{ background-position:-48px 0; } }
+  :root[data-skin="nb"] .progress-top b{ color:var(--accent); }
+  /* inputs, dropdown feel */
+  :root[data-skin="nb"] textarea,
+  :root[data-skin="nb"] .projects select,
+  :root[data-skin="nb"] .presets select{
+    background:#20242c;
+    border:1.5px dashed #3a4250;
+  }
+  :root[data-skin="nb"] textarea:focus,
+  :root[data-skin="nb"] .projects select:focus,
+  :root[data-skin="nb"] .presets select:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(34,211,238,.14);
+  }
+  /* badges: dashed ink stamps */
+  :root[data-skin="nb"] .badge{ border:1px dashed currentColor; }
+  :root[data-skin="nb"] .framing{
+    border:1.5px dashed rgba(34,211,238,.4);
+    background:rgba(34,211,238,.08);
+    color:var(--accent);
+    font-family:var(--nb-hand);
+  }
+  :root[data-skin="nb"] .vo-line{ font-family:var(--nb-hand); }
+  :root[data-skin="nb"] .connector{
+    background:repeating-linear-gradient(to bottom, var(--same) 0 6px, transparent 6px 12px);
+    background-size:100% 24px;
+  }
+  /* dashboard, resume, cost rows */
+  :root[data-skin="nb"] .dash summary,
+  :root[data-skin="nb"] .dash-h,
+  :root[data-skin="nb"] .modal-head h3{ font-family:var(--nb-mono); }
+  :root[data-skin="nb"] .cost-row{ border:1.5px dashed rgba(34,211,238,.35); background:rgba(34,211,238,.07); }
+  :root[data-skin="nb"] .resume-bar{
+    background:rgba(34,211,238,.08);
+    border:1.5px dashed var(--accent);
+  }
+  :root[data-skin="nb"] .resume-bar .rb-go{ background:var(--accent); color:#06171b; }
+  :root[data-skin="nb"] .compare{ background:var(--same-soft); }
+  :root[data-skin="nb"] .empty{ border:2px dashed #3f4856; border-radius:10px 22px 10px 22px; font-family:var(--nb-hand); }
+  /* bottom bar, fab, toast, modal sheet */
+  :root[data-skin="nb"] .bottombar{ border-top:1.5px dashed #39404b; }
+  :root[data-skin="nb"] .fab,
+  :root[data-skin="nb"] .bottombar .bb-top{ border:1.5px dashed #3a4250; background:#20242c; }
+  :root[data-skin="nb"] .toast{
+    background:var(--accent); color:#06171b;
+    box-shadow:0 6px 22px rgba(34,211,238,.4);
+  }
+  :root[data-skin="nb"] .merged-head,
+  :root[data-skin="nb"] .mrow .mno{ font-family:var(--nb-mono); }
+  :root[data-skin="nb"] .mrow .mtext{ font-family:var(--nb-hand); }
+  :root[data-skin="nb"] .mrow .mcopy{ border:1px dashed var(--line); }
+  :root[data-skin="nb"] .hist-item{ border:1.5px dashed #39404b; border-radius:8px 14px 8px 14px; }
+  :root[data-skin="nb"] ::-webkit-scrollbar-thumb{ background:#2a303a; }
+  /* keep the tilt out of reduced-motion contexts */
+  @media (prefers-reduced-motion:reduce){
+    :root[data-skin="nb"] .card:nth-child(odd),
+    :root[data-skin="nb"] .card:nth-child(even){ transform:none; }
+  }
+
   /* ---------- print / PDF shot list ---------- */
   @media print{
     :root,
+    :root[data-skin="nb"],
     :root[data-theme="light"],
     :root[data-theme="dark"]{
       --bg:#ffffff;
@@ -795,7 +1216,9 @@
       --ink-faint:#555555;
       --accent-soft:transparent;
     }
-    body{padding:0;font-size:12px;background:#fff}
+    body{padding:0;font-size:12px;background:#fff!important;background-image:none!important;font-family:var(--sans)!important}
+    .card{transform:none!important;border-style:solid!important}
+    .brand h1{background-image:none!important;font-family:var(--sans)!important}
     .head-btns,
     .inputs,
     .projects,
@@ -809,6 +1232,12 @@
     .empty,
     .dash-actions,
     .footer,
+    .bottombar,
+    .resume-bar,
+    .toggle-chip,
+    .mrow .mcopy,
+    .toast,
+    .confetti-wrap,
     .theme-toggle{display:none!important}
     .card.collapsed .card-body,
     .card.collapsed .vo-line{display:block!important}
@@ -838,6 +1267,8 @@
       <h1>Scene Cut Splitter</h1>
       <small>offline &middot; paste &rarr; generate &rarr; copy</small>
       <div class="head-btns">
+        <button class="icon-btn" id="skinToggle" type="button" aria-label="Toggle notebook skin" title="Notebook skin">📓</button>
+        <button class="icon-btn" id="setBtn" type="button" aria-label="Display settings" title="Text size & density"></button>
         <button class="icon-btn" id="cbToggle" type="button" aria-label="Toggle colorblind-safe colors" title="Colorblind-safe colors"></button>
         <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle theme"></button>
       </div>
@@ -851,6 +1282,7 @@
     <button class="mini-btn" id="renameProjBtn" type="button" title="Rename project">Rename</button>
     <button class="mini-btn danger" id="delProjBtn" type="button" title="Delete project">Delete</button>
     <button class="mini-btn" id="histBtn" type="button" title="Recent sessions">Recent</button>
+    <button class="mini-btn" id="trashBtn" type="button" title="Deleted projects">Trash</button>
   </div>
 
   <section class="inputs">
@@ -897,6 +1329,10 @@
       <button class="chip" data-filter="flagged" type="button">⚠️ Flagged <span class="cnt" id="cntFlag"></span></button>
     </div>
     <div class="tool-row">
+      <button class="toggle-chip" id="mergeToggle" type="button" title="Merge all cuts into one tab (script lines only)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <span id="mergeLabel">Merge view</span>
+      </button>
       <div class="spacer"></div>
       <button class="btn-copynext" id="copyNextBtn" type="button">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
@@ -905,7 +1341,17 @@
     </div>
   </div>
 
-  <details class="dash" id="dash" open>
+  <!-- 25 resume where I left off -->
+  <div class="resume-bar" id="resumeBar">
+    <div class="rb-txt" id="resumeTxt"></div>
+    <button class="rb-go" id="resumeGo" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      Resume
+    </button>
+    <button class="rb-x" id="resumeX" type="button" aria-label="Dismiss">&times;</button>
+  </div>
+
+  <details class="dash" id="dash">
     <summary>Session dashboard <span class="chev">&#9662;</span></summary>
     <div class="dash-body" id="dashBody"></div>
   </details>
@@ -922,6 +1368,21 @@
 <button class="fab" id="topFab" type="button" aria-label="Scroll to top">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
 </button>
+
+<!-- 23 thumb-reachable bottom action bar -->
+<div class="bottombar" id="bottomBar">
+  <div class="bb-prog">
+    <b id="bbProg">0/0</b>
+    <span class="bb-mini"><i id="bbFill"></i></span>
+  </div>
+  <button class="bb-next" id="bbNext" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    <span id="bbNextLabel">Copy next</span>
+  </button>
+  <button class="bb-top" id="bbTop" type="button" aria-label="Scroll to top">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+</div>
 
 <!-- #35 recent sessions + #60 changelog modal -->
 <div class="modal-back" id="modalBack">
@@ -948,8 +1409,22 @@
   var toolbarEl   = document.getElementById('toolbar');
   var compareEl   = document.getElementById('compare');
 
+  /* new-feature refs (v2.1) */
+  var mergeToggle = document.getElementById('mergeToggle');
+  var mergeLabel  = document.getElementById('mergeLabel');
+  var resumeBar   = document.getElementById('resumeBar');
+  var resumeTxt   = document.getElementById('resumeTxt');
+  var bottomBar   = document.getElementById('bottomBar');
+  var bbProg      = document.getElementById('bbProg');
+  var bbFill      = document.getElementById('bbFill');
+  var bbNext      = document.getElementById('bbNext');
+  var bbNextLabel = document.getElementById('bbNextLabel');
+
+  /* merged-view state (B) — remembered across reloads */
+  var mergedView  = lsGet('scs_merged') === '1';
+
   var BASE_TITLE   = 'Scene Cut Splitter';
-  var VERSION      = '2.0';
+  var VERSION      = '2.2';
   var DEFAULT_IMGS = 4;     /* images generated per cut, pick 1 — editable */
 
   /* #37 currencies — rate is $/image (or ₹/image), editable & remembered per currency */
@@ -960,6 +1435,22 @@
 
   /* #60 changelog shown in the version modal */
   var CHANGELOG = [
+    ['2.2', [
+      'Notebook skin 📓 — midnight field-notebook look (cyan ink, graph paper, handwriting)',
+      'Classic stays the default; your pick is remembered as the new default',
+      'Notebook is always dark — the light/dark toggle hides while it\'s on',
+      'Handwriting fonts cached for offline use after the first online visit'
+    ]],
+    ['2.1', [
+      'Merge view — all script lines in one tab (copy still grabs the full prompt)',
+      'Session dashboard now starts collapsed (tap to open); choice remembered',
+      'Thumb-reachable bottom bar with progress + Copy next + jump to top',
+      'Resume where you left off — jump straight to the first uncopied cut',
+      'Text-size slider + compact/comfortable density (⚙ in the header)',
+      'Deleted projects go to Trash and can be restored (kept 30 days)',
+      'Lifetime cost per project — cumulative spend across sessions',
+      'Little celebration when every cut is copied'
+    ]],
     ['2.0', [
       'Copy next button + auto-scroll to the next uncopied cut',
       'Copied-progress bar; copied & flagged marks now survive refresh',
@@ -1026,6 +1517,24 @@
 
   function activeProject(){ return getProjects()[currentProjectId()]; }
 
+  /* ---------- 20 lifetime spend per project ----------
+     lifetimeImgs = running total of images "committed" (each cut you copy
+     counts as imgs/cut images). Cost shown = lifetimeImgs × current rate. */
+  function imgsPerCut(){
+    var n = parseInt(lsGet('scs_imgs'), 10);
+    return (isFinite(n) && n >= 1) ? n : DEFAULT_IMGS;
+  }
+  function getLifetimeImgs(){
+    var p = activeProject();
+    return (p && isFinite(p.lifetimeImgs)) ? p.lifetimeImgs : 0;
+  }
+  function addLifetimeImgs(n){
+    var projs = getProjects(); var id = currentProjectId();
+    if(!projs[id]) return;
+    projs[id].lifetimeImgs = (projs[id].lifetimeImgs || 0) + n;
+    saveProjects(projs);
+  }
+
   function persistProject(){
     var projs = getProjects();
     var id = currentProjectId();
@@ -1073,6 +1582,8 @@
       state.cuts = []; renderCards();
     }
     renderProjectList();
+    resumeDismissed = false;   /* 25 re-evaluate per project load */
+    maybeShowResume();
   }
 
   /* =========================================================
@@ -1234,6 +1745,10 @@
       '&times; ' + total + ' cuts = <b id="costOut"></b>' +
       '<span id="imgsOut"></span></div>';
 
+    /* 20 lifetime spend for this project */
+    html += '<div class="cost-row" style="background:var(--same-soft)">📈 Lifetime this project &mdash; ' +
+      '<b id="lifeImgs">0</b> imgs generated &asymp; <b id="lifeCost"></b></div>';
+
     /* #4 scene-length distribution */
     html += '<div><div class="dash-h">Scene length (cuts per scene)</div><div class="dist">';
     runs.forEach(function(len, i){
@@ -1258,6 +1773,8 @@
     var costOut   = document.getElementById('costOut');
     var imgsOut   = document.getElementById('imgsOut');
     var rateLbl   = document.getElementById('rateLbl');
+    var lifeImgs  = document.getElementById('lifeImgs');
+    var lifeCost  = document.getElementById('lifeCost');
     function updateCost(){
       var r = parseFloat(rateInput.value);
       if(!isFinite(r) || r < 0) r = 0;
@@ -1268,6 +1785,10 @@
       imgsOut.textContent = ' (' + totalImgs + ' imgs)';
       lsSet('scs_rate_' + cur, String(r));
       lsSet('scs_imgs', String(n));
+      /* 20 lifetime — uses the same editable rate */
+      var life = getLifetimeImgs();
+      lifeImgs.textContent = life.toLocaleString();
+      lifeCost.textContent = CURRENCIES[cur].sym + (r * life).toFixed(2);
     }
     rateInput.addEventListener('input', updateCost);
     imgsInput.addEventListener('input', updateCost);
@@ -1387,6 +1908,8 @@
     emptyEl.classList.remove('show');
     dashEl.classList.remove('show'); dashBody.innerHTML = '';
     toolbarEl.classList.remove('show');
+    bottomBar.classList.remove('show');
+    document.body.classList.remove('has-bottombar');
     document.title = BASE_TITLE;
 
     if(!(resultInput.value || '').trim() && !cuts.length){
@@ -1406,6 +1929,9 @@
     var visible = 0;
     var frag = document.createDocumentFragment();
 
+    if(mergedView){
+      visible = buildMergedInto(frag, cuts, stylePrompt);
+    } else {
     cuts.forEach(function(cut, idx){
       if(!passesFilter(cut)) return;
       visible++;
@@ -1491,6 +2017,7 @@
         }
       }
     });
+    }
 
     cardsEl.appendChild(frag);
 
@@ -1508,6 +2035,52 @@
 
     updateToolbar(s);
     renderDashboard(cuts, s.newCount, s.sameCount, state.parts);
+  }
+
+  /* ---------- B: build the single merged tab (script lines only) ----------
+     One card holds every cut as a compact row: number + scene dot + the
+     script line. The copy button still copies the FULL prompt (style block +
+     that cut's description), exactly like the normal card. */
+  function buildMergedInto(frag, cuts, stylePrompt){
+    var card = document.createElement('article');
+    card.className = 'card merged';
+    var visible = 0, rowsHtml = '';
+    cuts.forEach(function(cut, idx){
+      if(!passesFilter(cut)) return;
+      visible++;
+      var isSame = cut.token === 'SAME SCENE';
+      var lineTxt = (cut.vo || '').trim();
+      var body = lineTxt
+        ? esc(lineTxt)
+        : '<span class="mmuted">' + esc((cut.scene || 'No line').slice(0, 120)) + (cut.scene && cut.scene.length > 120 ? '…' : '') + '</span>';
+      rowsHtml +=
+        '<div class="mrow' + (cut.copied ? ' done' : '') + (cut.flagged ? ' flagged' : '') + '" data-ci="' + idx + '">' +
+          '<span class="mdot ' + (isSame ? 's' : 'n') + '"></span>' +
+          '<span class="mno">🦕 ' + esc(cut.num) + '</span>' +
+          '<span class="mtext">' + body + '</span>' +
+          '<button class="mcopy' + (cut.copied ? ' copied' : '') + '" title="Copy full prompt" aria-label="Copy full prompt">' +
+            (cut.copied ? CHECK_ICON : COPY_ICON) +
+          '</button>' +
+        '</div>';
+    });
+    if(visible === 0) return 0;   /* let the empty-state message show instead */
+
+    card.innerHTML =
+      '<div class="merged-head">Script lines <span class="mh-cnt">' + visible + ' shown · copy = full prompt</span></div>' +
+      rowsHtml;
+
+    /* wire each row's copy button */
+    Array.prototype.forEach.call(card.querySelectorAll('.mrow'), function(row){
+      var ci  = parseInt(row.getAttribute('data-ci'), 10);
+      var cut = cuts[ci];
+      var d   = deriveCut(cut, stylePrompt);
+      var btn = row.querySelector('.mcopy');
+      btn.addEventListener('click', function(){
+        copyText(d.fullCopy, btn, row, cut, { scrollNext:false });
+      });
+    });
+    frag.appendChild(card);
+    return visible;
   }
 
   /* ---------- scene index: small 1..last numbers split into two groups ----------
@@ -1547,6 +2120,18 @@
     } else {
       nextBtn.disabled = false; label.textContent = 'Copy next (' + uncopied + ' left)';
     }
+
+    /* 23 mirror progress + copy-next into the thumb-reach bottom bar */
+    var pct = total ? copied / total * 100 : 0;
+    bbProg.textContent = copied + '/' + total;
+    bbFill.style.width = pct + '%';
+    if(uncopied === 0){
+      bbNext.disabled = true; bbNextLabel.textContent = 'All copied ✓';
+    } else {
+      bbNext.disabled = false; bbNextLabel.textContent = 'Copy next';
+    }
+    bottomBar.classList.toggle('show', total > 0);
+    document.body.classList.toggle('has-bottombar', total > 0);
   }
 
   /* ---------- #53 haptic tap ---------- */
@@ -1558,16 +2143,26 @@
     function done(ok){
       if(!ok) return;
       buzz(15);
+      var wasCopied = cut ? !!cut.copied : true;
       if(cut){
         cut.copied = true;
         persistProject();
+        if(!wasCopied) addLifetimeImgs(imgsPerCut());   /* 20 */
       }
       btn.classList.add('copied');
-      btn.innerHTML = CHECK_ICON + '<span>Copied</span>';
-      if(card) card.classList.add('done');
+      if(btn.classList && btn.classList.contains && btn.classList.contains('mcopy')){
+        btn.innerHTML = CHECK_ICON;                     /* merged icon-only button */
+      } else {
+        btn.innerHTML = CHECK_ICON + '<span>Copied</span>';
+      }
+      if(card && card.classList) card.classList.add('done');
+      hideResume();                                     /* 25 */
       /* refresh progress bar + counts without a full re-render flicker */
       var s = statsOf(state.cuts);
       updateToolbar(s);
+      refreshLifetimeUI();                              /* 20 keep figure live */
+      /* 31 celebrate the moment the final cut gets copied */
+      if(!wasCopied && state.cuts.length && state.cuts.every(function(c){ return c.copied; })) celebrate();
       /* #3 auto-scroll to the next un-copied card */
       if(opts.scrollNext !== false) scrollToNextUncopied(cut);
     }
@@ -1591,13 +2186,19 @@
       }
     }
     if(!target) return;
+    if(!passesFilter(target)) return;
+    /* merged view: scroll to the matching row */
+    if(mergedView){
+      var row = cardsEl.querySelector('.mrow[data-ci="' + state.cuts.indexOf(target) + '"]');
+      if(row) row.scrollIntoView({ behavior:'smooth', block:'center' });
+      return;
+    }
     /* map the target cut to its rendered card (respecting current filter) */
     var visIndex = -1, k;
     for(k = 0; k < state.cuts.length; k++){
       if(passesFilter(state.cuts[k])) visIndex++;
       if(state.cuts[k] === target) break;
     }
-    if(!passesFilter(target)) return;
     var el = cardsEl.querySelectorAll('.card')[visIndex];
     if(el) el.scrollIntoView({ behavior:'smooth', block:'center' });
   }
@@ -1659,6 +2260,32 @@
     var on = document.documentElement.getAttribute('data-cb') !== '1';
     applyCb(on);
     lsSet('scs_cb', on ? '1' : '0');
+  });
+
+  /* ---------- notebook skin toggle (v2.2) ----------
+     Classic is the default. Picking Notebook saves the choice, so it
+     becomes the new default on the next open. Notebook is always dark:
+     while it's on, the light/dark toggle is hidden and ignored. */
+  var skinToggle = document.getElementById('skinToggle');
+  var themeMeta  = document.querySelector('meta[name="theme-color"]');
+  function applySkin(nb){
+    if(nb){
+      document.documentElement.setAttribute('data-skin','nb');
+      skinToggle.classList.add('on');
+      themeToggle.style.display = 'none';          /* no white version, ever */
+      if(themeMeta) themeMeta.setAttribute('content', '#0b0c0f');
+    } else {
+      document.documentElement.removeAttribute('data-skin');
+      skinToggle.classList.remove('on');
+      themeToggle.style.display = '';
+      if(themeMeta) themeMeta.setAttribute('content', '#0f1115');
+    }
+  }
+  applySkin(lsGet('scs_skin') === 'nb');
+  skinToggle.addEventListener('click', function(){
+    var on = document.documentElement.getAttribute('data-skin') !== 'nb';
+    applySkin(on);
+    lsSet('scs_skin', on ? 'nb' : 'classic');
   });
 
   /* ---------- input auto-save into the current project (#29) ---------- */
@@ -1737,12 +2364,19 @@
     renderProjectList();
   });
   document.getElementById('delProjBtn').addEventListener('click', function(){
-    var projs = getProjects(); var id = currentProjectId();
+    var id = currentProjectId();
+    var projs = getProjects();
     var keys = Object.keys(projs);
     if(keys.length <= 1){ alert('This is your only project — nothing to switch to. Use Clear instead.'); return; }
-    if(!confirm('Delete project "' + projs[id].name + '"? This cannot be undone.')) return;
+    if(!confirm('Move project "' + projs[id].name + '" to Trash? You can restore it for 30 days.')) return;
+    persistProject();                     /* capture latest edits before removing */
+    projs = getProjects();
+    var removed = projs[id];
     delete projs[id];
     saveProjects(projs);
+    var t = getTrash();                   /* 6 soft-delete */
+    t[id] = { project: removed, deletedAt: Date.now() };
+    saveTrash(t);
     lsSet('scs_current', Object.keys(projs)[0]);
     loadProjectIntoView();
   });
@@ -1789,25 +2423,39 @@
   });
 
 
-  /* ---------- #2 copy next ---------- */
-  document.getElementById('copyNextBtn').addEventListener('click', function(){
+  /* ---------- #2 copy next (shared by toolbar + bottom bar, merge-aware) ---------- */
+  var noopBtn = { classList:{ add:function(){}, contains:function(){ return false; } }, innerHTML:'' };
+  function copyNext(){
     var stylePrompt = (promptInput.value || '').trim();
-    var target = null;
+    var target = null, ti = -1;
     for(var i = 0; i < state.cuts.length; i++){
-      if(!state.cuts[i].copied){ target = state.cuts[i]; break; }
+      if(!state.cuts[i].copied){ target = state.cuts[i]; ti = i; break; }
     }
     if(!target) return;
     var d = deriveCut(target, stylePrompt);
     /* ensure the target is visible under the current filter, else jump to All */
     if(!passesFilter(target)){ currentFilter = 'all'; syncFilterChips(); renderCards(); }
+
+    if(mergedView){
+      var row = cardsEl.querySelector('.mrow[data-ci="' + ti + '"]');
+      var mbtn = row ? row.querySelector('.mcopy') : noopBtn;
+      copyText(d.fullCopy, mbtn, row, target, { scrollNext:false });
+      if(row) row.scrollIntoView({ behavior:'smooth', block:'center' });
+      return;
+    }
     var visIndex = -1;
     for(var k = 0; k < state.cuts.length; k++){
       if(passesFilter(state.cuts[k])) visIndex++;
       if(state.cuts[k] === target) break;
     }
     var cardEl = cardsEl.querySelectorAll('.card')[visIndex];
-    var btn = cardEl ? cardEl.querySelector('.btn-copy') : { classList:{add:function(){}}, innerHTML:'' };
+    var btn = cardEl ? cardEl.querySelector('.btn-copy') : noopBtn;
     copyText(d.fullCopy, btn, cardEl, target);
+  }
+  document.getElementById('copyNextBtn').addEventListener('click', copyNext);
+  bbNext.addEventListener('click', copyNext);
+  document.getElementById('bbTop').addEventListener('click', function(){
+    window.scrollTo({ top:0, behavior:'smooth' });
   });
 
   /* ---------- #48 paste buttons ---------- */
@@ -1882,8 +2530,19 @@
     openModal();
   });
 
-  /* make sure the dashboard is expanded in the printed shot list */
-  window.addEventListener('beforeprint', function(){ dashEl.open = true; });
+  /* A: remember the dashboard's open/closed choice (default collapsed) */
+  var suppressDashSave = false, dashPrevOpen = null;
+  if(lsGet('scs_dash_open') === '1') dashEl.open = true;
+  dashEl.addEventListener('toggle', function(){
+    if(!suppressDashSave) lsSet('scs_dash_open', dashEl.open ? '1' : '0');
+  });
+  /* expand it just for the printed shot list, then restore the choice */
+  window.addEventListener('beforeprint', function(){
+    suppressDashSave = true; dashPrevOpen = dashEl.open; dashEl.open = true;
+  });
+  window.addEventListener('afterprint', function(){
+    dashEl.open = !!dashPrevOpen; suppressDashSave = false;
+  });
 
   generateBtn.addEventListener('click', function(){ generate(); });
 
@@ -1894,8 +2553,226 @@
     });
   }
 
+  /* ======================================================
+     B: merge-view toggle (all script lines in one tab)
+     ====================================================== */
+  function syncMergeChip(){
+    mergeToggle.classList.toggle('on', mergedView);
+    mergeLabel.textContent = mergedView ? 'Card view' : 'Merge view';
+  }
+  syncMergeChip();
+  mergeToggle.addEventListener('click', function(){
+    mergedView = !mergedView;
+    lsSet('scs_merged', mergedView ? '1' : '0');
+    syncMergeChip();
+    renderCards();
+    window.scrollTo({ top:0, behavior:'smooth' });
+  });
+
+  /* ======================================================
+     20: keep the lifetime figure live after each copy
+     ====================================================== */
+  function refreshLifetimeUI(){
+    var li = document.getElementById('lifeImgs');
+    var lc = document.getElementById('lifeCost');
+    if(!li || !lc) return;
+    var cur = lsGet('scs_currency'); if(cur !== 'INR') cur = 'USD';
+    var ri = document.getElementById('rateInput');
+    var r = ri ? parseFloat(ri.value) : NaN;
+    if(!isFinite(r) || r < 0){
+      var saved = parseFloat(lsGet('scs_rate_' + cur));
+      r = (isFinite(saved) && saved >= 0) ? saved : CURRENCIES[cur].defRate;
+    }
+    var life = getLifetimeImgs();
+    li.textContent = life.toLocaleString();
+    lc.textContent = CURRENCIES[cur].sym + (r * life).toFixed(2);
+  }
+
+  /* ======================================================
+     31: finish-line celebration when every cut is copied
+     ====================================================== */
+  var toastTimer;
+  function showToast(msg){
+    var t = document.getElementById('appToast');
+    if(!t){ t = document.createElement('div'); t.id = 'appToast'; t.className = 'toast'; document.body.appendChild(t); }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+  }
+  var celebrating = false;
+  function celebrate(){
+    showToast('🎉 All cuts copied — nice work!');
+    buzz([15,40,15]);
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if(celebrating) return;
+    celebrating = true;
+    var wrap = document.createElement('div');
+    wrap.className = 'confetti-wrap';
+    var colors = ['#f59a3c','#4cc38a','#6ea8fe','#cc79a7','#ffd166'];
+    for(var i = 0; i < 36; i++){
+      var p = document.createElement('i');
+      p.className = 'confetti';
+      p.style.left = (Math.random() * 100) + 'vw';
+      p.style.background = colors[i % colors.length];
+      p.style.animationDuration = (1.6 + Math.random() * 1.4) + 's';
+      p.style.animationDelay = (Math.random() * 0.5) + 's';
+      wrap.appendChild(p);
+    }
+    document.body.appendChild(wrap);
+    setTimeout(function(){ if(wrap.parentNode) wrap.parentNode.removeChild(wrap); celebrating = false; }, 3600);
+  }
+
+  /* ======================================================
+     25: resume where I left off
+     ====================================================== */
+  var resumeDismissed = false;
+  function hideResume(){ resumeBar.classList.remove('show'); }
+  function maybeShowResume(){
+    if(resumeDismissed){ hideResume(); return; }
+    var copied = 0, uncopied = 0;
+    state.cuts.forEach(function(c){ if(c.copied) copied++; else uncopied++; });
+    if(state.cuts.length && copied > 0 && uncopied > 0){
+      resumeTxt.innerHTML = 'Welcome back <small>' + copied + ' of ' + state.cuts.length +
+                            ' copied — jump to the next uncopied cut</small>';
+      resumeBar.classList.add('show');
+    } else {
+      hideResume();
+    }
+  }
+  document.getElementById('resumeGo').addEventListener('click', function(){
+    scrollToNextUncopied(null);
+    hideResume();
+  });
+  document.getElementById('resumeX').addEventListener('click', function(){
+    resumeDismissed = true; hideResume();
+  });
+
+  /* ======================================================
+     26: display settings — density + text size
+     ====================================================== */
+  var GEAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>';
+  var setBtn = document.getElementById('setBtn');
+  setBtn.innerHTML = GEAR;
+  function applyDensity(d){
+    if(d === 'compact') document.documentElement.setAttribute('data-density','compact');
+    else document.documentElement.removeAttribute('data-density');
+  }
+  function applyFont(px){
+    if(px && px >= 10) document.documentElement.style.setProperty('--read-fs', px + 'px');
+    else document.documentElement.style.removeProperty('--read-fs');
+  }
+  (function initDisplay(){
+    applyDensity(lsGet('scs_density') === 'compact' ? 'compact' : 'cozy');
+    var f = parseInt(lsGet('scs_fontsize'), 10);
+    if(isFinite(f)) applyFont(f);
+  })();
+  setBtn.addEventListener('click', function(){
+    var dens = lsGet('scs_density') === 'compact' ? 'compact' : 'cozy';
+    var fs = parseInt(lsGet('scs_fontsize'), 10); if(!isFinite(fs)) fs = 13;
+    modalTitle.textContent = 'Display';
+    modalBody.innerHTML =
+      '<div class="set-group"><div class="set-h">Density</div>' +
+        '<div class="seg" id="densSeg">' +
+          '<button type="button" data-d="cozy"' + (dens === 'cozy' ? ' class="on"' : '') + '>Comfortable</button>' +
+          '<button type="button" data-d="compact"' + (dens === 'compact' ? ' class="on"' : '') + '>Compact</button>' +
+        '</div></div>' +
+      '<div class="set-group"><div class="set-h">Text size (lines &amp; prompts)</div>' +
+        '<div class="fs-row"><input type="range" id="fsRange" min="11" max="18" step="1" value="' + fs + '"><span class="fs-val" id="fsVal">' + fs + 'px</span></div>' +
+        '<div class="fs-preview" id="fsPrev" style="--read-fs:' + fs + 'px">The more you look at traditional foodways around the world…</div>' +
+      '</div>' +
+      '<div class="set-reset"><button class="mini-btn" id="setReset" type="button">Reset to defaults</button></div>';
+    openModal();
+    var densSeg = document.getElementById('densSeg');
+    densSeg.addEventListener('click', function(e){
+      var b = e.target.closest('button[data-d]'); if(!b) return;
+      var d = b.getAttribute('data-d');
+      lsSet('scs_density', d); applyDensity(d);
+      Array.prototype.forEach.call(densSeg.querySelectorAll('button'), function(x){ x.classList.toggle('on', x === b); });
+    });
+    var fsRange = document.getElementById('fsRange');
+    var fsVal   = document.getElementById('fsVal');
+    var fsPrev  = document.getElementById('fsPrev');
+    fsRange.addEventListener('input', function(){
+      var v = parseInt(fsRange.value, 10);
+      fsVal.textContent = v + 'px';
+      fsPrev.style.setProperty('--read-fs', v + 'px');
+      applyFont(v);
+      lsSet('scs_fontsize', String(v));
+    });
+    document.getElementById('setReset').addEventListener('click', function(){
+      lsDel('scs_density'); lsDel('scs_fontsize');
+      applyDensity('cozy'); applyFont(0);
+      closeModal();
+    });
+  });
+
+  /* ======================================================
+     6: trash — soft-deleted projects (restorable 30 days)
+     ====================================================== */
+  function getTrash(){ return jGet('scs_trash', {}); }
+  function saveTrash(t){ jSet('scs_trash', t); }
+  function purgeTrash(){
+    var t = getTrash(), now = Date.now(), changed = false;
+    Object.keys(t).forEach(function(k){
+      if(!t[k].deletedAt || (now - t[k].deletedAt) > 30 * 864e5){ delete t[k]; changed = true; }
+    });
+    if(changed) saveTrash(t);
+  }
+  function openTrash(){
+    purgeTrash();
+    var t = getTrash();
+    var keys = Object.keys(t).sort(function(a,b){ return t[b].deletedAt - t[a].deletedAt; });
+    modalTitle.textContent = 'Trash';
+    if(!keys.length){
+      modalBody.innerHTML = '<div class="hist-empty">Trash is empty.<br>Deleted projects appear here for 30 days.</div>';
+    } else {
+      modalBody.innerHTML = '<div class="trash-sub">Deleted projects are kept for 30 days, then removed automatically.</div>' +
+        keys.map(function(k){
+          var it = t[k];
+          var when = new Date(it.deletedAt).toLocaleDateString();
+          var cuts = (it.project && it.project.cutsState) ? it.project.cutsState.length : 0;
+          return '<div class="hist-item">' +
+            '<div class="hi-main">' +
+              '<div class="hi-name">' + esc(it.project ? it.project.name : 'Untitled') + '</div>' +
+              '<div class="hi-sub">deleted ' + esc(when) + ' · ' + cuts + ' cuts</div>' +
+            '</div>' +
+            '<div class="hi-actions">' +
+              '<button class="mini-btn" data-restore="' + k + '" type="button">Restore</button>' +
+              '<button class="mini-btn danger" data-purge="' + k + '" type="button">Delete</button>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+    }
+    openModal();
+  }
+  document.getElementById('trashBtn').addEventListener('click', openTrash);
+  modalBody.addEventListener('click', function(e){
+    var rb = e.target.closest('button[data-restore]');
+    var pb = e.target.closest('button[data-purge]');
+    if(rb){
+      var t = getTrash(), key = rb.getAttribute('data-restore'), entry = t[key];
+      if(!entry) return;
+      delete t[key]; saveTrash(t);
+      persistProject();
+      var projs = getProjects();
+      var nid = uid();
+      projs[nid] = entry.project || { name:'Restored', result:'', prompt:'', cutsState:null, parts:1, lastStats:null };
+      saveProjects(projs);
+      lsSet('scs_current', nid);
+      loadProjectIntoView();
+      openTrash();
+    } else if(pb){
+      var t2 = getTrash(), key2 = pb.getAttribute('data-purge');
+      if(t2[key2] && confirm('Permanently delete "' + (t2[key2].project ? t2[key2].project.name : 'this project') + '"? This cannot be undone.')){
+        delete t2[key2]; saveTrash(t2); openTrash();
+      }
+    }
+  });
+
   /* ---------- boot ---------- */
   ensureProject();
+  purgeTrash();
   renderPresetList();
   loadProjectIntoView();
 })();
