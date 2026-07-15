@@ -801,6 +801,7 @@
   }
   .card.merged .merged-head .mh-cnt{margin-left:auto;font-family:var(--mono);color:var(--ink-faint);text-transform:none}
   .mrow{
+    position:relative;
     display:flex;align-items:flex-start;gap:10px;
     padding:10px 14px;
     border-bottom:1px solid var(--line);
@@ -809,6 +810,23 @@
   .mrow:last-child{border-bottom:none}
   .mrow.done{opacity:.5}
   .mrow.flagged{background:var(--accent-soft)}
+  /* small animated connector on SAME-SCENE rows — links up to the row above,
+     mirroring the flowing card connector but tucked into the row so it never
+     makes the row taller. NEW-scene rows get none. */
+  .mrow.cont::before{
+    content:'';
+    position:absolute;
+    left:17px;top:0;width:2px;height:16px;
+    background:repeating-linear-gradient(to bottom, var(--same) 0 4px, transparent 4px 8px);
+    background-size:100% 12px;
+    animation:mflow 1s linear infinite;
+    opacity:.9;
+    pointer-events:none;
+  }
+  @keyframes mflow{
+    from{background-position:0 0}
+    to{background-position:0 12px}
+  }
   .mrow .mno{
     font-family:var(--mono);font-size:12px;font-weight:700;
     color:var(--ink);white-space:nowrap;padding-top:2px;min-width:44px;
@@ -1425,7 +1443,7 @@
   var mergedView  = lsGet('scs_merged') === '1';
 
   var BASE_TITLE   = 'Scene Cut Splitter';
-  var VERSION      = '2.3';
+  var VERSION      = '2.4';
   var DEFAULT_IMGS = 4;     /* images generated per cut, pick 1 — editable */
 
   /* #37 currencies — rate is $/image (or ₹/image), editable & remembered per currency */
@@ -1436,6 +1454,9 @@
 
   /* #60 changelog shown in the version modal */
   var CHANGELOG = [
+    ['2.4', [
+      'Merge view: SAME-SCENE lines now show a small animated connector linking up to the line above (matches the card view)'
+    ]],
     ['2.3', [
       'Notebook skin: small buttons restored to their original clean shape (solid edge, even corners) while keeping the cyan colour — the big blue Generate / Copy-next stamps are unchanged'
     ]],
@@ -2058,7 +2079,7 @@
         ? esc(lineTxt)
         : '<span class="mmuted">' + esc((cut.scene || 'No line').slice(0, 120)) + (cut.scene && cut.scene.length > 120 ? '…' : '') + '</span>';
       rowsHtml +=
-        '<div class="mrow' + (cut.copied ? ' done' : '') + (cut.flagged ? ' flagged' : '') + '" data-ci="' + idx + '">' +
+        '<div class="mrow' + (cut.copied ? ' done' : '') + (cut.flagged ? ' flagged' : '') + (isSame ? ' cont' : '') + '" data-ci="' + idx + '">' +
           '<span class="mdot ' + (isSame ? 's' : 'n') + '"></span>' +
           '<span class="mno">🦕 ' + esc(cut.num) + '</span>' +
           '<span class="mtext">' + body + '</span>' +
