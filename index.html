@@ -1073,15 +1073,16 @@
   :root[data-skin="nb"] .card:hover,
   :root[data-skin="nb"] .card:active{ transform:rotate(0); border-color:#5eead4; }
   :root[data-skin="nb"] .card.flagged{ border-color:var(--accent); border-style:dashed; }
-  /* buttons: pill shape with one squared corner, cyan glow when active */
+  /* small buttons keep their ORIGINAL shapes (solid border, even/round
+     corners) — only the notebook cyan palette + mono font carry over.
+     No border-radius here, so the classic radii apply unchanged. */
   :root[data-skin="nb"] .mini-btn,
   :root[data-skin="nb"] .chip,
   :root[data-skin="nb"] .toggle-chip,
   :root[data-skin="nb"] .btn-copy,
   :root[data-skin="nb"] .btn-print{
     background:#20242c;
-    border:1.5px dashed #3a4250;
-    border-radius:999px 8px 999px 8px;
+    border:1px solid var(--line);
     font-family:var(--nb-mono);
   }
   :root[data-skin="nb"] .mini-btn:hover,
@@ -1117,7 +1118,7 @@
     transform:translateY(-1px) rotate(-0.4deg);
     box-shadow:0 12px 30px -4px rgba(34,211,238,.7), inset 0 -4px 0 rgba(0,0,0,.15);
   }
-  :root[data-skin="nb"] .btn-clear{ border:1.5px dashed var(--line); border-radius:14px 4px 14px 4px; }
+  :root[data-skin="nb"] .btn-clear{ border:1px solid var(--line); }
   :root[data-skin="nb"] .btn-copynext,
   :root[data-skin="nb"] .bottombar .bb-next{
     background:var(--accent);
@@ -1184,7 +1185,7 @@
   /* bottom bar, fab, toast, modal sheet */
   :root[data-skin="nb"] .bottombar{ border-top:1.5px dashed #39404b; }
   :root[data-skin="nb"] .fab,
-  :root[data-skin="nb"] .bottombar .bb-top{ border:1.5px dashed #3a4250; background:#20242c; }
+  :root[data-skin="nb"] .bottombar .bb-top{ border:1px solid var(--line); background:#20242c; }
   :root[data-skin="nb"] .toast{
     background:var(--accent); color:#06171b;
     box-shadow:0 6px 22px rgba(34,211,238,.4);
@@ -1424,7 +1425,7 @@
   var mergedView  = lsGet('scs_merged') === '1';
 
   var BASE_TITLE   = 'Scene Cut Splitter';
-  var VERSION      = '2.2';
+  var VERSION      = '2.3';
   var DEFAULT_IMGS = 4;     /* images generated per cut, pick 1 — editable */
 
   /* #37 currencies — rate is $/image (or ₹/image), editable & remembered per currency */
@@ -1435,6 +1436,9 @@
 
   /* #60 changelog shown in the version modal */
   var CHANGELOG = [
+    ['2.3', [
+      'Notebook skin: small buttons restored to their original clean shape (solid edge, even corners) while keeping the cyan colour — the big blue Generate / Copy-next stamps are unchanged'
+    ]],
     ['2.2', [
       'Notebook skin 📓 — midnight field-notebook look (cyan ink, graph paper, handwriting)',
       'Classic stays the default; your pick is remembered as the new default',

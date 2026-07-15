@@ -1,7 +1,7 @@
 /* Scene Cut Splitter — offline service worker (#45)
    Caches the app shell so it opens fully offline once installed.
    Bump CACHE when you change any cached file so clients update. */
-var CACHE = 'scs-v2.2';
+var CACHE = 'scs-v2.3';
 
 /* Notebook-skin fonts: cached on first fetch so the skin works offline */
 var FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
